@@ -59,8 +59,11 @@ static config_entries_t _config_entries_config = {
 };
 
 static const config_entry_mapping_t _config_entries_mapping[] = {
+    { .name = "kr-tx config entries",    .parse = NULL, .print = NULL, .payload = NULL},
     { .name = "kr-tx",    .parse = config_parse_u32, .print = config_print_du32, .payload = &_config_entries_config.kr_tx},
+    { .name = "rc-input config entries", .parse = NULL, .print = NULL, .payload = NULL},
     { .name = "rc-input", .parse = config_parse_u32, .print = config_print_du32, .payload = &_config_entries_config.rc_input},
+    { .name = "nrf config entries",      .parse = NULL, .print = NULL, .payload = NULL},
     { .name = "nrf",      .parse = config_parse_u32, .print = config_print_x08,  .payload = &_config_entries_config.nrf},
     { .name = "\0",       .parse = NULL,             .print = NULL,              .payload = NULL}
 };

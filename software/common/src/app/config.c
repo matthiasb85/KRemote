@@ -168,7 +168,7 @@ void config_get_entry_sh(BaseSequentialStream *chp, int argc, char *argv[])
     chprintf(chp, "Cannot find entry for %s\r\n", argv[0]);
     return;
   }
-  entry->print(chp, entry);
+  if(entry->print) entry->print(chp, entry);
 }
 
 void config_set_entry_sh(BaseSequentialStream *chp, int argc, char *argv[])
@@ -184,7 +184,7 @@ void config_set_entry_sh(BaseSequentialStream *chp, int argc, char *argv[])
     chprintf(chp, "Cannot find entry for %s\r\n", argv[0]);
     return;
   }
-  entry->parse(argv[1],entry);
+  if(entry->parse) entry->parse(argv[1],entry);
 }
 
 void config_show_sh(BaseSequentialStream *chp, int argc, char *argv[])
@@ -198,7 +198,14 @@ void config_show_sh(BaseSequentialStream *chp, int argc, char *argv[])
   config_entry_mapping_t * entry = (config_entry_mapping_t *)&(_config_control->entry_mapping[0]);
   while(strlen(entry->name))
   {
-    entry->print(chp, entry);
+    if(entry->print)
+    {
+      entry->print(chp, entry);
+    }
+    else
+    {
+      chprintf(chp, " %s\r\n",entry->name);
+    }
     entry++;
   }
 }
@@ -214,8 +221,11 @@ void config_export_sh(BaseSequentialStream *chp, int argc, char *argv[])
   config_entry_mapping_t * entry = (config_entry_mapping_t *)&(_config_control->entry_mapping[0]);
   while(strlen(entry->name))
   {
-    chprintf(chp, "config-set");
-    entry->print(chp, entry);
+    if(entry->print)
+    {
+      chprintf(chp, "config-set");
+      entry->print(chp, entry);
+    }
     entry++;
   }
 }
