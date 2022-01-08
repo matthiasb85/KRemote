@@ -56,6 +56,7 @@ static void _config_init_hal(void);
 static void _config_init_module(void);
 static void _config_load_config(uint8_t * dest);
 static config_entry_mapping_t * _config_get_entry_by_name(char * name);
+
 /*
  * Static variables
  */
@@ -127,7 +128,7 @@ config_entry_mapping_t * _config_get_entry_by_name(char * name)
  * Callback functions
  */
 
-//#if defined(USE_CMD_SHELL)
+#if defined(USE_CMD_SHELL)
 /*
  * Shell functions
  */
@@ -229,7 +230,7 @@ void config_export_sh(BaseSequentialStream *chp, int argc, char *argv[])
     entry++;
   }
 }
-//#endif
+#endif
 
 /*
  * API functions
