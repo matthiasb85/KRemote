@@ -25,8 +25,6 @@
  * Include ChibiOS & HAL
  */
 // clang-format off
-#include <api/app/config_entries.h>
-
 #include "ch.h"
 #include "hal.h"
 #include "chprintf.h"
@@ -41,6 +39,7 @@
  * Include dependencies
  */
 #include "api/app/cmd_shell.h"
+#include "api/app/config.h"
 #include "api/hal/flash_storage.h"
 #include "api/hal/nrf.h"
 #include "api/hal/usb.h"
@@ -145,7 +144,7 @@ void kr_tx_init(void)
    * Initialize config
    */
   flash_storage_init();
-  //config_init();
+  config_init();
 
   /*
    * Project specific hal initialization

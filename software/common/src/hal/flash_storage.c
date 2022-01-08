@@ -48,7 +48,7 @@
  */
 static void _flash_storage_init_hal(void);
 static void _flash_storage_init_module(void);
-static uint32_t _flash_storage_get_crc(void);
+static uint32_t _flash_storage_get_crc(uint8_t * buffer);
 
 /*
  * Static variables
@@ -93,16 +93,18 @@ static void _flash_storage_init_module(void)
 
 }
 
-static uint32_t _flash_storage_get_crc(void)
+static uint32_t _flash_storage_get_crc(uint8_t * buffer)
 {
-  flash_storage_header_t *header = (flash_storage_header_t *)_flash_storage_area;
+  flash_storage_header_t *header = (flash_storage_header_t *)buffer;
 
   /*
    * Use hardware CRC module to calculate flash CRC
    */
   crcResetI(&FLASH_STORAGE_CRC_HANDLE);
-  return crcCalcI(&FLASH_STORAGE_CRC_HANDLE, header->config_size + sizeof(flash_storage_header_t) - sizeof(crc_t),
-                  &_flash_storage_area[sizeof(crc_t)]);
+  return (!header->config_size || header->config_size > FLASH_STORAGE_SIZE) ?
+      0 :
+      crcCalcI(&FLASH_STORAGE_CRC_HANDLE, header->config_size - sizeof(crc_t),
+                  &buffer[sizeof(crc_t)]);
 }
 
 /*
@@ -123,7 +125,7 @@ void flash_storage_info_sh(BaseSequentialStream *chp, int argc, char *argv[])
     return;
   }
   flash_storage_header_t *header = (flash_storage_header_t *)_flash_storage_area;
-  uint32_t crc = _flash_storage_get_crc();
+  uint32_t crc = _flash_storage_get_crc(_flash_storage_area);
   if (header->crc != crc)
   {
     chprintf(chp, "Warning CRC missmatch!\r\nActual CRC of flash partition is 0x%08x\r\n", crc);
@@ -154,12 +156,13 @@ uint8_t * flash_storage_get_config_base_address(void)
   return _flash_storage_area;
 }
 
-void flash_storage_write_config(uint8_t *buffer, uint32_t size)
+void flash_storage_write_config(uint8_t *buffer)
 {
   flash_storage_header_t *header = (flash_storage_header_t *)buffer;
 
   uint16_t start_sector = FLASH_STORAGE_START_SECTOR;
   uint16_t i = 0;
+  uint32_t size = header->config_size;
 
   const flash_descriptor_t *desc = efl_lld_get_descriptor(&FLASH_STORAGE_DRIVER_HANDLE);
   flash_offset_t flash_offset = (flash_offset_t)_flash_storage_area - (flash_offset_t)desc->address;
@@ -178,18 +181,18 @@ void flash_storage_write_config(uint8_t *buffer, uint32_t size)
   /*
    * Set crc
    */
-  header->crc = _flash_storage_get_crc();
+  header->crc = _flash_storage_get_crc(buffer);
 
   /*
    * Write config
    */
   efl_lld_program(&FLASH_STORAGE_DRIVER_HANDLE, flash_offset, size,
-                  (const uint8_t *)&buffer);
+                  (const uint8_t *)buffer);
 
 }
 
-uint8_t flash_storage_check_integrity(void)
+uint8_t flash_storage_check_integrity(uint32_t version)
 {
  flash_storage_header_t *header = (flash_storage_header_t *)_flash_storage_area;
- return (header->config_size) ? (header->crc == _flash_storage_get_crc()) : 0;
+ return (header->crc == _flash_storage_get_crc(_flash_storage_area) && header->version == version);
 }

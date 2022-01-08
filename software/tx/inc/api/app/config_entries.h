@@ -26,5 +26,8 @@
 
 #include "cfg/app/config_entries_cfg.h"
 #include "types/app/config_entries_types.h"
+#include "api/app/config.h"
+
+extern const config_control_t * config_entries_get_control_struct(void);
 
 #endif /* INC_API_APP_CONFIG_ENTRIES_H_ */

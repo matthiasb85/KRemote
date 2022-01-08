@@ -24,7 +24,6 @@
 #ifndef INC_TYPES_HAL_FLASH_STORAGE_TYPES_H_
 #define INC_TYPES_HAL_FLASH_STORAGE_TYPES_H_
 
-
 typedef uint32_t crc_t;
 
 typedef struct

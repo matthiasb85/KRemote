@@ -28,5 +28,28 @@
 #include "types/app/config_types.h"
 
 extern void config_init(void);
+extern void * config_get_module_config(uint32_t id);
+
+extern void config_parse_s08(char * value, config_entry_mapping_t * entry);
+extern void config_parse_s16(char * value, config_entry_mapping_t * entry);
+extern void config_parse_s32(char * value, config_entry_mapping_t * entry);
+extern void config_parse_s64(char * value, config_entry_mapping_t * entry);
+extern void config_parse_u08(char * value, config_entry_mapping_t * entry);
+extern void config_parse_u16(char * value, config_entry_mapping_t * entry);
+extern void config_parse_u32(char * value, config_entry_mapping_t * entry);
+extern void config_parse_u64(char * value, config_entry_mapping_t * entry);
+
+extern void config_print_ds08(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
+extern void config_print_ds16(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
+extern void config_print_ds32(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
+extern void config_print_ds64(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
+extern void config_print_du08(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
+extern void config_print_du16(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
+extern void config_print_du32(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
+extern void config_print_du64(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
+extern void config_print_x08(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
+extern void config_print_x16(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
+extern void config_print_x32(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
+extern void config_print_x64(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
 
 #endif /* INC_API_APP_CONFIG_H_ */

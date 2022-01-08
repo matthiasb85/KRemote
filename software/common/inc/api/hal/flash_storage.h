@@ -29,7 +29,7 @@
 
 extern void flash_storage_init(void);
 extern uint8_t * flash_storage_get_config_base_address(void);
-extern void flash_storage_write_config(uint8_t *buffer, uint32_t size);
-extern uint8_t flash_storage_check_integrity(void);
+extern void flash_storage_write_config(uint8_t *buffer);
+extern uint8_t flash_storage_check_integrity(uint32_t version);
 
 #endif /* INC_API_HAL_FLASH_STORAGE_H_ */

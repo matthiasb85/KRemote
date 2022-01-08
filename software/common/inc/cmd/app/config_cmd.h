@@ -29,7 +29,12 @@
  * Global definition of shell commands
  * for module config
  */
-//extern void config_foo_sh(BaseSequentialStream *chp, int argc, char *argv[]);
+extern void config_load_sh(BaseSequentialStream *chp, int argc, char *argv[]);
+extern void config_store_sh(BaseSequentialStream *chp, int argc, char *argv[]);
+extern void config_get_entry_sh(BaseSequentialStream *chp, int argc, char *argv[]);
+extern void config_set_entry_sh(BaseSequentialStream *chp, int argc, char *argv[]);
+extern void config_show_sh(BaseSequentialStream *chp, int argc, char *argv[]);
+extern void config_export_sh(BaseSequentialStream *chp, int argc, char *argv[]);
 
 /*
  * Shell command list
@@ -37,7 +42,12 @@
  */
 // clang-format off
 #define CONFIG_CMD_LIST \
-            /*{"config-foo, config_foo_sh},*/
+            {"config-load",   config_load_sh}, \
+            {"config-store",  config_store_sh}, \
+            {"config-get",    config_get_entry_sh}, \
+            {"config-set",    config_set_entry_sh}, \
+            {"config-show",   config_show_sh}, \
+            {"config-export", config_export_sh},
 
 // clang-format on
 #endif

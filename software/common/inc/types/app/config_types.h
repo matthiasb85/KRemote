@@ -24,6 +24,22 @@
 #ifndef INC_TYPES_APP_CONFIG_TYPES_H_
 #define INC_TYPES_APP_CONFIG_TYPES_H_
 
+#include "ch.h"
+#include "hal.h"
 
+typedef struct _config_entry_mapping_t
+{
+  const char *const name;
+  void (*parse)(char *,struct _config_entry_mapping_t *);
+  void (*print)(BaseSequentialStream *, struct _config_entry_mapping_t *);
+  void * payload;
+}config_entry_mapping_t;
+
+typedef struct
+{
+  uint8_t * config;
+  config_entry_mapping_t * entry_mapping;
+  void ** module_list;
+}config_control_t;
 
 #endif /* INC_TYPES_APP_CONFIG_TYPES_H_ */
