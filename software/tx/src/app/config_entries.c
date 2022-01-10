@@ -18,7 +18,7 @@
  * config_entries.c
  *
  *  Created on: 05.01.2022
- *      Author: matti
+ *      Author: matthiasb85
  */
 
 /*
@@ -59,12 +59,12 @@ static config_entries_t _config_entries_config = {
 };
 
 static const config_entry_mapping_t _config_entries_mapping[] = {
-    { .name = "kr-tx config entries",    .parse = NULL, .print = NULL, .payload = NULL},
-    { .name = "kr-tx",    .parse = config_parse_u32, .print = config_print_du32, .payload = &_config_entries_config.kr_tx},
-    { .name = "rc-input config entries", .parse = NULL, .print = NULL, .payload = NULL},
-    { .name = "rc-input", .parse = config_parse_u32, .print = config_print_du32, .payload = &_config_entries_config.rc_input},
-    { .name = "nrf config entries",      .parse = NULL, .print = NULL, .payload = NULL},
-    { .name = "nrf",      .parse = config_parse_u32, .print = config_print_x08,  .payload = &_config_entries_config.nrf},
+    { CONFIG_SECTION_DIVIDER("kr-tx config entries") },
+    { .name = "kr-tx",    .parse = CONFIG_PARSE_FUNC(uint32_t), .print = CONFIG_PRINT_FUNC(dec,uint32_t), .payload = &_config_entries_config.kr_tx},
+    { CONFIG_SECTION_DIVIDER("rc-input config entries") },
+    { .name = "rc-input", .parse = CONFIG_PARSE_FUNC(uint32_t), .print = CONFIG_PRINT_FUNC(dec,uint32_t), .payload = &_config_entries_config.rc_input},
+    { CONFIG_SECTION_DIVIDER("nrf config entries") },
+    { .name = "nrf",      .parse = CONFIG_PARSE_FUNC(uint32_t), .print = CONFIG_PRINT_FUNC(hex,uint8_t),  .payload = &_config_entries_config.nrf},
     { .name = "\0",       .parse = NULL,             .print = NULL,              .payload = NULL}
 };
 

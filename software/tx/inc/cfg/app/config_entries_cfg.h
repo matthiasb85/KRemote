@@ -18,7 +18,7 @@
  * config_entries_cfg.h
  *
  *  Created on: 05.01.2022
- *      Author: matti
+ *      Author: matthiasb85
  */
 
 #ifndef INC_CFG_APP_CONFIG_ENTRIES_CFG_H_

@@ -18,7 +18,7 @@
  * nrf_cfg.h
  *
  *  Created on: 05.01.2022
- *      Author: matti
+ *      Author: matthiasb85
  */
 
 #ifndef COMMON_INC_CFG_HAL_NRF_CFG_H_

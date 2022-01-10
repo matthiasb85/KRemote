@@ -18,7 +18,7 @@
  * config_entries.h
  *
  *  Created on: 05.01.2022
- *      Author: matti
+ *      Author: matthiasb85
  */
 
 #ifndef INC_API_APP_CONFIG_ENTRIES_H_

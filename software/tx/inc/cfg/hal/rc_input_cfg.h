@@ -18,7 +18,7 @@
  * rc_input_cfg.h
  *
  *  Created on: 05.01.2022
- *      Author: matti
+ *      Author: matthiasb85
  */
 
 #ifndef INC_CFG_HAL_RC_INPUT_CFG_H_

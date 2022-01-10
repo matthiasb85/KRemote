@@ -18,7 +18,7 @@
  * cmd_shell_cmds_types.h
  *
  *  Created on: 05.01.2022
- *      Author: matti
+ *      Author: matthiasb85
  */
 
 #ifndef INC_TYPES_APP_CMD_SHELL_CMDS_TYPES_H_

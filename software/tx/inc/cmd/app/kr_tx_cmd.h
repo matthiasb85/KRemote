@@ -18,7 +18,7 @@
  * kr_tx_cmd.h
  *
  *  Created on: 05.01.2022
- *      Author: matti
+ *      Author: matthiasb85
  */
 
 #ifndef INC_CMD_APP_KR_TX_CMD_H_

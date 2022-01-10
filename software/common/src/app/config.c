@@ -18,7 +18,7 @@
  * config.c
  *
  *  Created on: 05.01.2022
- *      Author: matti
+ *      Author: matthiasb85
  */
 
 /*
@@ -174,9 +174,11 @@ void config_get_entry_sh(BaseSequentialStream *chp, int argc, char *argv[])
 
 void config_set_entry_sh(BaseSequentialStream *chp, int argc, char *argv[])
 {
-  if (argc != 2)
+  if (argc < 2)
   {
-    chprintf(chp, "Usage:  config-set variable value\r\n");
+    chprintf(chp, "Usage:  config-set variable value     (single value variables)\r\n");
+    chprintf(chp, "        config-set variable idx value (array based variables)\r\n");
+    chprintf(chp, "        config-set variable ... \r\n");
     return;
   }
   config_entry_mapping_t * entry = _config_get_entry_by_name(argv[0]);
@@ -185,7 +187,7 @@ void config_set_entry_sh(BaseSequentialStream *chp, int argc, char *argv[])
     chprintf(chp, "Cannot find entry for %s\r\n", argv[0]);
     return;
   }
-  if(entry->parse) entry->parse(argv[1],entry);
+  if(entry->parse) entry->parse(chp, argv,entry);
 }
 
 void config_show_sh(BaseSequentialStream *chp, int argc, char *argv[])
@@ -249,31 +251,27 @@ void * config_get_module_config(uint32_t id)
 /*
  * Generic parser functions
  */
-void config_parse_s08(char * value, config_entry_mapping_t * entry) { *((int8_t *)entry->payload)  = (int8_t)strtol(value, NULL, 0);}
-void config_parse_s16(char * value, config_entry_mapping_t * entry) { *((int16_t *)entry->payload) = (int16_t)strtol(value, NULL, 0);}
-void config_parse_s32(char * value, config_entry_mapping_t * entry) { *((int32_t *)entry->payload) = (int32_t)strtol(value, NULL, 0);}
-void config_parse_s64(char * value, config_entry_mapping_t * entry) { *((int32_t *)entry->payload) = (int64_t)strtol(value, NULL, 0);}
-void config_parse_u08(char * value, config_entry_mapping_t * entry) { *((uint8_t *)entry->payload)  = (uint8_t)strtol(value, NULL, 0);}
-void config_parse_u16(char * value, config_entry_mapping_t * entry) { *((uint16_t *)entry->payload) = (uint16_t)strtoul(value, NULL, 0);}
-void config_parse_u32(char * value, config_entry_mapping_t * entry) { *((uint32_t *)entry->payload) = (uint32_t)strtoul(value, NULL, 0);}
-void config_parse_u64(char * value, config_entry_mapping_t * entry) { *((uint32_t *)entry->payload) = (uint64_t)strtoul(value, NULL, 0);}
+CONFIG_PARSE_IMPL(int8_t)
+CONFIG_PARSE_IMPL(int16_t)
+CONFIG_PARSE_IMPL(int32_t)
+CONFIG_PARSE_IMPL(int64_t)
+CONFIG_PARSE_IMPL(uint8_t)
+CONFIG_PARSE_IMPL(uint16_t)
+CONFIG_PARSE_IMPL(uint32_t)
+CONFIG_PARSE_IMPL(uint64_t)
 
 /*
  * Generic print functions
  */
-void config_print_ds08(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry) { chprintf(chp, "  %-20s %16d\r\n",entry->name,*((int8_t *)entry->payload));}
-void config_print_ds16(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry) { chprintf(chp, "  %-20s %16d\r\n",entry->name,*((int16_t *)entry->payload));}
-void config_print_ds32(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry) { chprintf(chp, "  %-20s %16d\r\n",entry->name,*((int32_t *)entry->payload));}
-void config_print_ds64(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry) { chprintf(chp, "  %-20s %16d\r\n",entry->name,*((int64_t *)entry->payload));}
-void config_print_du08(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry) { chprintf(chp, "  %-20s %16d\r\n",entry->name,*((uint8_t *)entry->payload));}
-void config_print_du16(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry) { chprintf(chp, "  %-20s %16d\r\n",entry->name,*((uint16_t *)entry->payload));}
-void config_print_du32(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry) { chprintf(chp, "  %-20s %16d\r\n",entry->name,*((uint32_t *)entry->payload));}
-void config_print_du64(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry) { chprintf(chp, "  %-20s %16d\r\n",entry->name,*((uint64_t *)entry->payload));}
-void config_print_x08(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry) { chprintf(chp, "  %-20s %012s0x%02x\r\n",entry->name,"\0",*((uint8_t *)entry->payload));}
-void config_print_x16(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry) { chprintf(chp, "  %-20s %010s0x%04x\r\n",entry->name,"\0",*((uint16_t *)entry->payload));}
-void config_print_x32(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry) { chprintf(chp, "  %-20s %06s0x%08x\r\n",entry->name,"\0",*((uint32_t *)entry->payload));}
-void config_print_x64(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry) { chprintf(chp, "  %-20s 0x%016x\r\n",entry->name,*((uint64_t *)entry->payload));}
-
-
-
-
+CONFIG_PRINT_IMPL(dec, int8_t)
+CONFIG_PRINT_IMPL(dec, int16_t)
+CONFIG_PRINT_IMPL(dec, int32_t)
+CONFIG_PRINT_IMPL(dec, int64_t)
+CONFIG_PRINT_IMPL(dec, uint8_t)
+CONFIG_PRINT_IMPL(dec, uint16_t)
+CONFIG_PRINT_IMPL(dec, uint32_t)
+CONFIG_PRINT_IMPL(dec, uint64_t)
+CONFIG_PRINT_IF(hex, uint8_t)  { chprintf(chp, "  %-20s %012s0x%02x\r\n",entry->name,"\0",*((uint8_t *)entry->payload));}
+CONFIG_PRINT_IF(hex, uint16_t) { chprintf(chp, "  %-20s %010s0x%04x\r\n",entry->name,"\0",*((uint16_t *)entry->payload));}
+CONFIG_PRINT_IF(hex, uint32_t) { chprintf(chp, "  %-20s %010s0x%04x\r\n",entry->name,"\0",*((uint16_t *)entry->payload));}
+CONFIG_PRINT_IF(hex, uint64_t) { chprintf(chp, "  %-20s 0x%016x\r\n",entry->name,*((uint64_t *)entry->payload));}

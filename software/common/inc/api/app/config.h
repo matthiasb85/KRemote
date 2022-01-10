@@ -18,7 +18,7 @@
  * config.h
  *
  *  Created on: 05.01.2022
- *      Author: matti
+ *      Author: matthiasb85
  */
 
 #ifndef INC_API_APP_CONFIG_H_
@@ -30,26 +30,39 @@
 extern void config_init(void);
 extern void * config_get_module_config(uint32_t id);
 
-extern void config_parse_s08(char * value, config_entry_mapping_t * entry);
-extern void config_parse_s16(char * value, config_entry_mapping_t * entry);
-extern void config_parse_s32(char * value, config_entry_mapping_t * entry);
-extern void config_parse_s64(char * value, config_entry_mapping_t * entry);
-extern void config_parse_u08(char * value, config_entry_mapping_t * entry);
-extern void config_parse_u16(char * value, config_entry_mapping_t * entry);
-extern void config_parse_u32(char * value, config_entry_mapping_t * entry);
-extern void config_parse_u64(char * value, config_entry_mapping_t * entry);
+extern CONFIG_PARSE_IF(int8_t);
+extern CONFIG_PARSE_IF(int16_t);
+extern CONFIG_PARSE_IF(int32_t);
+extern CONFIG_PARSE_IF(int64_t);
+extern CONFIG_PARSE_IF(uint8_t);
+extern CONFIG_PARSE_IF(uint16_t);
+extern CONFIG_PARSE_IF(uint32_t);
+extern CONFIG_PARSE_IF(uint64_t);
 
-extern void config_print_ds08(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
-extern void config_print_ds16(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
-extern void config_print_ds32(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
-extern void config_print_ds64(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
-extern void config_print_du08(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
-extern void config_print_du16(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
-extern void config_print_du32(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
-extern void config_print_du64(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
-extern void config_print_x08(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
-extern void config_print_x16(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
-extern void config_print_x32(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
-extern void config_print_x64(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
+extern CONFIG_PRINT_IF(dec,int8_t);
+extern CONFIG_PRINT_IF(dec,int16_t);
+extern CONFIG_PRINT_IF(dec,int32_t);
+extern CONFIG_PRINT_IF(dec,int64_t);
+extern CONFIG_PRINT_IF(dec,uint8_t);
+extern CONFIG_PRINT_IF(dec,uint16_t);
+extern CONFIG_PRINT_IF(dec,uint32_t);
+extern CONFIG_PRINT_IF(dec,uint64_t);
+extern CONFIG_PRINT_IF(hex,uint8_t);
+extern CONFIG_PRINT_IF(hex,uint16_t);
+extern CONFIG_PRINT_IF(hex,uint32_t);
+extern CONFIG_PRINT_IF(hex,uint64_t);
+
+//extern void config_print_ds08(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
+//extern void config_print_ds16(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
+//extern void config_print_ds32(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
+//extern void config_print_ds64(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
+//extern void config_print_du08(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
+//extern void config_print_du16(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
+//extern void config_print_du32(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
+//extern void config_print_du64(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
+//extern void config_print_x08(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
+//extern void config_print_x16(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
+//extern void config_print_x32(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
+//extern void config_print_x64(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
 
 #endif /* INC_API_APP_CONFIG_H_ */

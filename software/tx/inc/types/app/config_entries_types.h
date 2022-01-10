@@ -18,7 +18,7 @@
  * config_entries_types.h
  *
  *  Created on: 05.01.2022
- *      Author: matti
+ *      Author: matthiasb85
  */
 
 #ifndef INC_TYPES_APP_CONFIG_ENTRIES_TYPES_H_

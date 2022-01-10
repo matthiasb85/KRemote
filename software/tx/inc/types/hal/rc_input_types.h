@@ -18,7 +18,7 @@
  * rc_input_types.h
  *
  *  Created on: 05.01.2022
- *      Author: matti
+ *      Author: matthiasb85
  */
 
 #ifndef INC_TYPES_HAL_RC_INPUT_TYPES_H_

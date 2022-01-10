@@ -18,7 +18,7 @@
  * kr_tx_cfg.h
  *
  *  Created on: 05.01.2022
- *      Author: matti
+ *      Author: matthiasb85
  */
 
 #ifndef INC_CFG_APP_KR_TX_CFG_H_

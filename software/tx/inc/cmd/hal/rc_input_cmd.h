@@ -18,7 +18,7 @@
  * rc_input_cmd.h
  *
  *  Created on: 05.01.2022
- *      Author: matti
+ *      Author: matthiasb85
  */
 
 #ifndef INC_CMD_HAL_RC_INPUT_CMD_H_

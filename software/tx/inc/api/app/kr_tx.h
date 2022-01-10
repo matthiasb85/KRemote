@@ -18,7 +18,7 @@
  * kr_tx.h
  *
  *  Created on: 05.01.2022
- *      Author: matti
+ *      Author: matthiasb85
  */
 
 #ifndef INC_API_APP_KR_TX_H_

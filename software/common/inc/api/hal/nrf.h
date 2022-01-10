@@ -18,7 +18,7 @@
  * nrf.h
  *
  *  Created on: 05.01.2022
- *      Author: matti
+ *      Author: matthiasb85
  */
 
 #ifndef COMMON_INC_API_HAL_NRF_H_

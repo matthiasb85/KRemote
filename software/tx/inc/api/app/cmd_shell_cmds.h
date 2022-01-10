@@ -18,7 +18,7 @@
  * shell_cmds.h
  *
  *  Created on: 05.01.2022
- *      Author: matti
+ *      Author: matthiasb85
  */
 
 #ifndef INC_API_APP_CMD_SHELL_CMDS_H_

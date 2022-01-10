@@ -18,7 +18,7 @@
  * nrf_types.h
  *
  *  Created on: 05.01.2022
- *      Author: matti
+ *      Author: matthiasb85
  */
 
 #ifndef COMMON_INC_TYPES_HAL_NRF_TYPES_H_

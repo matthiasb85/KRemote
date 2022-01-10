@@ -18,7 +18,7 @@
  * config_types.h
  *
  *  Created on: 05.01.2022
- *      Author: matti
+ *      Author: matthiasb85
  */
 
 #ifndef INC_TYPES_APP_CONFIG_TYPES_H_
@@ -30,7 +30,7 @@
 typedef struct _config_entry_mapping_t
 {
   const char *const name;
-  void (*parse)(char *,struct _config_entry_mapping_t *);
+  void (*parse)(BaseSequentialStream *, char **,struct _config_entry_mapping_t *);
   void (*print)(BaseSequentialStream *, struct _config_entry_mapping_t *);
   void * payload;
 }config_entry_mapping_t;
@@ -41,5 +41,26 @@ typedef struct
   config_entry_mapping_t * entry_mapping;
   void ** module_list;
 }config_control_t;
+
+#define CONFIG_SECTION_DIVIDER(X) .name = (X), .parse = NULL, .print = NULL, .payload = NULL
+
+#define CONFIG_PARSE_FUNC(X)      config_parse_##X
+#define CONFIG_PARSE_IF(X)        void CONFIG_PARSE_FUNC(X) (BaseSequentialStream * chp, char ** values, config_entry_mapping_t * entry)
+#define CONFIG_PARSE_IMPL(X)      \
+                                  CONFIG_PARSE_IF(X) \
+                                  { \
+                                    (void)chp; \
+                                    *((X *)entry->payload)  = (X)strtol(values[1], NULL, 0); \
+                                  }
+
+
+#define _CONFIG_PRINT_FUNC(A,B)   A##B
+#define CONFIG_PRINT_FUNC(X,Y)    _CONFIG_PRINT_FUNC(config_print_##X, Y)
+#define CONFIG_PRINT_IF(X,Y)      void CONFIG_PRINT_FUNC(X,Y) (BaseSequentialStream * chp, config_entry_mapping_t * entry)
+#define CONFIG_PRINT_IMPL(X,Y)    \
+                                  CONFIG_PRINT_IF(X,Y) \
+                                  { \
+                                    chprintf(chp, "  %-20s %16d\r\n",entry->name,*((Y *)entry->payload)); \
+                                  }
 
 #endif /* INC_TYPES_APP_CONFIG_TYPES_H_ */
