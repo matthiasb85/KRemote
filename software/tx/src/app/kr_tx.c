@@ -150,7 +150,7 @@ void kr_tx_init(void)
    * Project specific hal initialization
    */
   //nrf_init();
-  //rc_input_init();
+  rc_input_init();
 
 #if defined(USE_CMD_SHELL)
   /*

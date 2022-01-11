@@ -33,6 +33,7 @@ typedef struct _config_entry_mapping_t
   void (*parse)(BaseSequentialStream *, char **,struct _config_entry_mapping_t *);
   void (*print)(BaseSequentialStream *, struct _config_entry_mapping_t *);
   void * payload;
+  const char *const help;
 }config_entry_mapping_t;
 
 typedef struct
@@ -42,7 +43,7 @@ typedef struct
   void ** module_list;
 }config_control_t;
 
-#define CONFIG_SECTION_DIVIDER(X) .name = (X), .parse = NULL, .print = NULL, .payload = NULL
+#define CONFIG_SECTION_DIVIDER(X) .name = (X), .parse = NULL, .print = NULL, .payload = NULL, .help = "\0"
 
 #define CONFIG_PARSE_FUNC(X)      config_parse_##X
 #define CONFIG_PARSE_IF(X)        void CONFIG_PARSE_FUNC(X) (BaseSequentialStream * chp, char ** values, config_entry_mapping_t * entry)
@@ -60,7 +61,7 @@ typedef struct
 #define CONFIG_PRINT_IMPL(X,Y)    \
                                   CONFIG_PRINT_IF(X,Y) \
                                   { \
-                                    chprintf(chp, "  %-20s %16d\r\n",entry->name,*((Y *)entry->payload)); \
+                                    chprintf(chp, "  %-20s %16d",entry->name,*((Y *)entry->payload)); \
                                   }
 
 #endif /* INC_TYPES_APP_CONFIG_TYPES_H_ */

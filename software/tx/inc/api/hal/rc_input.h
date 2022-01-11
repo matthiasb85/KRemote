@@ -28,5 +28,6 @@
 #include "types/hal/rc_input_types.h"
 
 extern void rc_input_init(void);
+extern void rc_input_get_channel_states(rc_input_ch_states_t *dest);
 
 #endif /* INC_API_HAL_RC_INPUT_H_ */

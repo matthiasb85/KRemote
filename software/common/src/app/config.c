@@ -204,6 +204,7 @@ void config_show_sh(BaseSequentialStream *chp, int argc, char *argv[])
     if(entry->print)
     {
       entry->print(chp, entry);
+      chprintf(chp, " %s\r\n",entry->help);
     }
     else
     {
@@ -228,6 +229,7 @@ void config_export_sh(BaseSequentialStream *chp, int argc, char *argv[])
     {
       chprintf(chp, "config-set");
       entry->print(chp, entry);
+      chprintf(chp, "\r\n");
     }
     entry++;
   }
@@ -271,7 +273,7 @@ CONFIG_PRINT_IMPL(dec, uint8_t)
 CONFIG_PRINT_IMPL(dec, uint16_t)
 CONFIG_PRINT_IMPL(dec, uint32_t)
 CONFIG_PRINT_IMPL(dec, uint64_t)
-CONFIG_PRINT_IF(hex, uint8_t)  { chprintf(chp, "  %-20s %012s0x%02x\r\n",entry->name,"\0",*((uint8_t *)entry->payload));}
-CONFIG_PRINT_IF(hex, uint16_t) { chprintf(chp, "  %-20s %010s0x%04x\r\n",entry->name,"\0",*((uint16_t *)entry->payload));}
-CONFIG_PRINT_IF(hex, uint32_t) { chprintf(chp, "  %-20s %010s0x%04x\r\n",entry->name,"\0",*((uint16_t *)entry->payload));}
-CONFIG_PRINT_IF(hex, uint64_t) { chprintf(chp, "  %-20s 0x%016x\r\n",entry->name,*((uint64_t *)entry->payload));}
+CONFIG_PRINT_IF(hex, uint8_t)  { chprintf(chp, "  %-20s %012s0x%02x",entry->name,"\0",*((uint8_t *)entry->payload));}
+CONFIG_PRINT_IF(hex, uint16_t) { chprintf(chp, "  %-20s %010s0x%04x",entry->name,"\0",*((uint16_t *)entry->payload));}
+CONFIG_PRINT_IF(hex, uint32_t) { chprintf(chp, "  %-20s %010s0x%04x",entry->name,"\0",*((uint16_t *)entry->payload));}
+CONFIG_PRINT_IF(hex, uint64_t) { chprintf(chp, "  %-20s 0x%016x",entry->name,*((uint64_t *)entry->payload));}

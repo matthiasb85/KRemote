@@ -29,7 +29,7 @@
  * Global definition of shell commands
  * for module anykey
  */
-//extern void rc_input_foo_sh(BaseSequentialStream *chp, int argc, char *argv[]);
+extern void rc_input_loop_channels_sh(BaseSequentialStream *chp, int argc, char *argv[]);
 
 /*
  * Shell command list
@@ -37,7 +37,7 @@
  */
 // clang-format off
 #define RC_INPUT_CMD_LIST \
-            /*{"rc-input-foo, rc_input_foo_sh},*/
+            {"rc-input-loop", rc_input_loop_channels_sh},
 
 // clang-format on
 #endif
