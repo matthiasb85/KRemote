@@ -47,6 +47,33 @@ typedef enum
 
 typedef enum
 {
+  RC_INPUT_AN_IN0 = 0,
+  RC_INPUT_AN_IN1,
+  RC_INPUT_AN_IN2,
+  RC_INPUT_AN_IN3,
+  RC_INPUT_AN_IN4,
+  RC_INPUT_AN_IN5,
+  RC_INPUT_AN_IN6,
+  RC_INPUT_AN_IN7,
+  RC_INPUT_AN_MAX
+}rc_input_ch_an_t;
+
+typedef enum
+{
+  RC_INPUT_DIG_IN0 = 0,
+  RC_INPUT_DIG_IN1,
+  RC_INPUT_DIG_IN2,
+  RC_INPUT_DIG_IN3,
+  RC_INPUT_DIG_IN4,
+  RC_INPUT_DIG_IN5,
+  RC_INPUT_DIG_IN6,
+  RC_INPUT_DIG_IN7,
+  RC_INPUT_DIG_MAX
+}rc_input_ch_dig_t;
+
+
+typedef enum
+{
   RC_INPUT_CH_ANALOG = 0,
   RC_INPUT_CH_DIGITAL
 }rc_input_ch_type_t;
@@ -89,9 +116,12 @@ typedef struct
 
 typedef struct
 {
-  uint32_t digital_switch_mode[RC_INPUT_DIG_SW_COUNT];
+  uint32_t digital_switch_mode[RC_INPUT_DIG_MAX];
   uint32_t poll_thread_prio;
   uint32_t poll_thread_period_ms;
+  uint32_t analog_conversion_period_ms;
+  uint32_t analog_conversion_emph_old;
+  uint32_t analog_conversion_emph_new;
   uint32_t loop_cmd_period_ms;
 }rc_input_config_t;
 

@@ -46,7 +46,7 @@
 /*
  * Static asserts
  */
-static_assert(RC_INPUT_MAX == (RC_INPUT_DIG_SW_COUNT + RC_INPUT_AN_IN_COUNT),
+static_assert(RC_INPUT_MAX == (RC_INPUT_AN_MAX + RC_INPUT_DIG_MAX),
               "Number of defined channels must match number of digital + analog inputs");
 
 /*
@@ -54,12 +54,19 @@ static_assert(RC_INPUT_MAX == (RC_INPUT_DIG_SW_COUNT + RC_INPUT_AN_IN_COUNT),
  */
 static void _rc_input_init_hal(void);
 static void _rc_input_init_module(void);
-static void _rc_input_set_dig_sw_state(rc_input_ch_t ch, rc_input_state_digital_t state);
+static void _rc_input_get_dig_state(rc_input_ch_t ch, rc_input_state_digital_t state);
+static void _rc_input_an_start_measurement (void);
+static uint16_t _rc_input_get_an_state(rc_input_ch_an_t line, uint16_t old_value);
+static void _rc_input_an_start_measurement_cb(void *arg);
+static void _rc_input_an_finish_measurement_cb(ADCDriver *adcp);
 
 /*
  * Static variables
  */
 static THD_WORKING_AREA(_rc_input_poll_stack, RC_INPUT_POLL_THREAD_STACK);
+static virtual_timer_t _rc_input_adc_start_measurement_vtp;
+static adcsample_t _rc_input_an_samples[RC_INPUT_AN_MAX];
+
 static rc_input_config_t * _rc_input_config = NULL;
 static rc_input_ch_states_t _rc_input_ch_states[RC_INPUT_MAX] = {
     { .type = RC_INPUT_CH_ANALOG,  .state.analog  = 0 },
@@ -79,7 +86,7 @@ static rc_input_ch_states_t _rc_input_ch_states[RC_INPUT_MAX] = {
     { .type = RC_INPUT_CH_DIGITAL, .state.digital = RC_INPUT_DIG_SW_OFF },
     { .type = RC_INPUT_CH_DIGITAL, .state.digital = RC_INPUT_DIG_SW_OFF },
 };
-static rc_input_ch_digital_t _rc_input_dig_sw_list[RC_INPUT_DIG_SW_COUNT] = {
+static rc_input_ch_digital_t _rc_input_dig_sw_list[RC_INPUT_DIG_MAX] = {
     {.line = RC_INPUT_DIG_LINE_SW0, .ch = RC_INPUT_CH8,  .delay = 0, .state = RC_INPUT_SW_STATE_INIT },
     {.line = RC_INPUT_DIG_LINE_SW1, .ch = RC_INPUT_CH9,  .delay = 0, .state = RC_INPUT_SW_STATE_INIT },
     {.line = RC_INPUT_DIG_LINE_SW2, .ch = RC_INPUT_CH10, .delay = 0, .state = RC_INPUT_SW_STATE_INIT },
@@ -89,7 +96,26 @@ static rc_input_ch_digital_t _rc_input_dig_sw_list[RC_INPUT_DIG_SW_COUNT] = {
     {.line = RC_INPUT_DIG_LINE_SW6, .ch = RC_INPUT_CH14, .delay = 0, .state = RC_INPUT_SW_STATE_INIT },
     {.line = RC_INPUT_DIG_LINE_SW7, .ch = RC_INPUT_CH15, .delay = 0, .state = RC_INPUT_SW_STATE_INIT },
 };
-static rc_input_ch_analog_t _rc_input_an_in_list[RC_INPUT_AN_IN_COUNT] = {
+static const ADCConversionGroup _rc_input_adc_cfg = {
+  FALSE,
+  RC_INPUT_AN_MAX,
+  _rc_input_an_finish_measurement_cb,
+  NULL,
+  0,                                    /* CR1 */
+  ADC_CR2_EXTSEL_SWSTART,               /* CR2 */
+  0,                                    /* SMPR1 */
+  ADC_SMPR2_SMP_AN0(ADC_SAMPLE_1P5) | ADC_SMPR2_SMP_AN1(ADC_SAMPLE_1P5) |      /* SMPR2 */
+  ADC_SMPR2_SMP_AN2(ADC_SAMPLE_1P5) | ADC_SMPR2_SMP_AN3(ADC_SAMPLE_1P5) |      /* SMPR2 */
+  ADC_SMPR2_SMP_AN4(ADC_SAMPLE_1P5) | ADC_SMPR2_SMP_AN5(ADC_SAMPLE_1P5) |      /* SMPR2 */
+  ADC_SMPR2_SMP_AN6(ADC_SAMPLE_1P5) | ADC_SMPR2_SMP_AN7(ADC_SAMPLE_1P5),       /* SMPR2 */
+  ADC_SQR1_NUM_CH(RC_INPUT_AN_MAX),   /* SQR1 */
+  ADC_SQR2_SQ7_N(RC_INPUT_AN_IN7) ,   /* SQR2 */
+  ADC_SQR3_SQ1_N(RC_INPUT_AN_IN0) | ADC_SQR3_SQ2_N(RC_INPUT_AN_IN1) | /* SQR3 */
+  ADC_SQR3_SQ1_N(RC_INPUT_AN_IN2) | ADC_SQR3_SQ2_N(RC_INPUT_AN_IN3) | /* SQR3 */
+  ADC_SQR3_SQ1_N(RC_INPUT_AN_IN4) | ADC_SQR3_SQ2_N(RC_INPUT_AN_IN5) |  /* SQR3 */
+  ADC_SQR3_SQ1_N(RC_INPUT_AN_IN6),    /* SQR3 */
+};
+static rc_input_ch_analog_t _rc_input_an_in_list[RC_INPUT_AN_MAX] = {
     { .line = RC_INPUT_AN_LINE_IN0, .ch = RC_INPUT_CH0 },
     { .line = RC_INPUT_AN_LINE_IN1, .ch = RC_INPUT_CH1 },
     { .line = RC_INPUT_AN_LINE_IN2, .ch = RC_INPUT_CH2 },
@@ -127,7 +153,7 @@ static __attribute__((noreturn)) THD_FUNCTION(_rc_input_poll_thread, arg)
     /*
      * Loop over all switches
      */
-    for (sw_id = 0; sw_id < RC_INPUT_DIG_SW_COUNT; sw_id++)
+    for (sw_id = 0; sw_id < RC_INPUT_DIG_MAX; sw_id++)
     {
       /*
        * Check if delay is set for switch
@@ -153,7 +179,7 @@ static __attribute__((noreturn)) THD_FUNCTION(_rc_input_poll_thread, arg)
             {
               _rc_input_dig_sw_list[sw_id].delay = RC_INPUT_DIG_DEBOUNCE_TIME_TICKS;
               _rc_input_dig_sw_list[sw_id].state = RC_INPUT_SW_STATE_PRESS;
-              _rc_input_set_dig_sw_state(_rc_input_dig_sw_list[sw_id].ch, RC_INPUT_DIG_SW_ON);
+              _rc_input_get_dig_state(_rc_input_dig_sw_list[sw_id].ch, RC_INPUT_DIG_SW_ON);
             }
             break;
           case RC_INPUT_SW_STATE_PRESS:
@@ -166,13 +192,13 @@ static __attribute__((noreturn)) THD_FUNCTION(_rc_input_poll_thread, arg)
             {
               _rc_input_dig_sw_list[sw_id].delay = RC_INPUT_DIG_DEBOUNCE_TIME_TICKS;
               _rc_input_dig_sw_list[sw_id].state = RC_INPUT_SW_STATE_INIT;
-              _rc_input_set_dig_sw_state(_rc_input_dig_sw_list[sw_id].ch, RC_INPUT_DIG_SW_OFF);
+              _rc_input_get_dig_state(_rc_input_dig_sw_list[sw_id].ch, RC_INPUT_DIG_SW_OFF);
             }
             break;
           default:
             _rc_input_dig_sw_list[sw_id].delay = 0;
             _rc_input_dig_sw_list[sw_id].state = RC_INPUT_SW_STATE_INIT;
-            _rc_input_set_dig_sw_state(_rc_input_dig_sw_list[sw_id].ch, RC_INPUT_DIG_SW_OFF);
+            _rc_input_get_dig_state(_rc_input_dig_sw_list[sw_id].ch, RC_INPUT_DIG_SW_OFF);
             break;
         }
       }
@@ -191,7 +217,41 @@ static __attribute__((noreturn)) THD_FUNCTION(_rc_input_poll_thread, arg)
 /*
  * Static helper functions
  */
-static void _rc_input_set_dig_sw_state(rc_input_ch_t ch, rc_input_state_digital_t state)
+static void _rc_input_init_hal(void)
+{
+  uint8_t sw_id = 0;
+
+  /*
+   * Setup analog lines
+   */
+  for (sw_id = 0; sw_id < RC_INPUT_AN_MAX; sw_id++)
+  {
+    palSetLineMode(_rc_input_an_in_list[sw_id].line, PAL_MODE_INPUT_ANALOG);
+  }
+
+  /*
+   * Setup digital lines
+   */
+  for (sw_id = 0; sw_id < RC_INPUT_DIG_MAX; sw_id++)
+  {
+    palSetLineMode(_rc_input_dig_sw_list[sw_id].line, _rc_input_config->digital_switch_mode[sw_id]);
+  }
+}
+
+static void _rc_input_init_module(void)
+{
+
+  /*
+   * Create rc_input polling task and adc conversion timer
+   */
+  chThdCreateStatic(_rc_input_poll_stack, sizeof(_rc_input_poll_stack), _rc_input_config->poll_thread_prio,
+                    _rc_input_poll_thread, NULL);
+
+  chVTObjectInit(&_rc_input_adc_start_measurement_vtp);
+  _rc_input_an_start_measurement();
+}
+
+static void _rc_input_get_dig_state(rc_input_ch_t ch, rc_input_state_digital_t state)
 {
   /*
    * Use critical section to provide
@@ -202,39 +262,43 @@ static void _rc_input_set_dig_sw_state(rc_input_ch_t ch, rc_input_state_digital_
   chSysUnlock();
 }
 
-static void _rc_input_init_hal(void)
+static void _rc_input_an_start_measurement (void)
 {
-  uint8_t sw_id = 0;
+  adcStartConversionI(RC_INPUT_AN_DRIVER, &_rc_input_adc_cfg, _rc_input_an_samples, 1);
 
-  /*
-   * Setup analog lines
-   */
-  for (sw_id = 0; sw_id < RC_INPUT_DIG_SW_COUNT; sw_id++)
-  {
-    palSetLineMode(_rc_input_an_in_list[sw_id].line, PAL_MODE_INPUT_ANALOG);
-  }
-  /*
-   * Setup digital lines
-   */
-  for (sw_id = 0; sw_id < RC_INPUT_DIG_SW_COUNT; sw_id++)
-  {
-    palSetLineMode(_rc_input_dig_sw_list[sw_id].line, _rc_input_config->digital_switch_mode[sw_id]);
-  }
+  chVTSetI(&_rc_input_adc_start_measurement_vtp,
+           TIME_MS2I(_rc_input_config->analog_conversion_period_ms),
+           _rc_input_an_start_measurement_cb,
+           (void *)(NULL));
 }
 
-static void _rc_input_init_module(void)
+static uint16_t _rc_input_get_an_state(rc_input_ch_an_t line, uint16_t old_value)
 {
-
-  /*
-   * Create rc_input polling task
-   */
-  chThdCreateStatic(_rc_input_poll_stack, sizeof(_rc_input_poll_stack), _rc_input_config->poll_thread_prio,
-                    _rc_input_poll_thread, NULL);
+  return (_rc_input_an_samples[line]*_rc_input_config->analog_conversion_emph_new + old_value*_rc_input_config->analog_conversion_emph_old)
+      /(_rc_input_config->analog_conversion_emph_new + _rc_input_config->analog_conversion_emph_old);
 }
 
 /*
  * Callback functions
  */
+static void _rc_input_an_start_measurement_cb(void *arg)
+{
+  (void)arg;
+  _rc_input_an_start_measurement();
+}
+
+static void _rc_input_an_finish_measurement_cb(ADCDriver *adcp)
+{
+  (void)adcp;
+  uint8_t ch = 0;
+  for(ch = 0; ch < RC_INPUT_AN_MAX; ch++)
+  {
+    chSysLockFromISR();
+    rc_input_state_analog_t * value = &(_rc_input_ch_states[_rc_input_an_in_list[ch].ch].state.analog);
+    *value = _rc_input_get_an_state(ch, *value);
+    chSysUnlockFromISR();
+  }
+}
 
 //#if defined(USE_CMD_SHELL)
 /*

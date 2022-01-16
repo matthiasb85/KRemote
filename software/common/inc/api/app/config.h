@@ -52,17 +52,4 @@ extern CONFIG_PRINT_IF(hex,uint16_t);
 extern CONFIG_PRINT_IF(hex,uint32_t);
 extern CONFIG_PRINT_IF(hex,uint64_t);
 
-//extern void config_print_ds08(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
-//extern void config_print_ds16(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
-//extern void config_print_ds32(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
-//extern void config_print_ds64(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
-//extern void config_print_du08(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
-//extern void config_print_du16(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
-//extern void config_print_du32(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
-//extern void config_print_du64(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
-//extern void config_print_x08(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
-//extern void config_print_x16(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
-//extern void config_print_x32(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
-//extern void config_print_x64(BaseSequentialStream *chp, struct _config_entry_mapping_t *entry);
-
 #endif /* INC_API_APP_CONFIG_H_ */
