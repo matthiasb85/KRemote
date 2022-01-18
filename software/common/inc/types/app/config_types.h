@@ -30,7 +30,7 @@
 typedef struct _config_entry_mapping_t
 {
   const char *const name;
-  void (*parse)(BaseSequentialStream *, char **,struct _config_entry_mapping_t *);
+  void (*parse)(BaseSequentialStream *, int, char **,struct _config_entry_mapping_t *);
   void (*print)(BaseSequentialStream *, struct _config_entry_mapping_t *);
   void * payload;
   const char *const help;
@@ -46,12 +46,13 @@ typedef struct
 #define CONFIG_SECTION_DIVIDER(X) .name = (X), .parse = NULL, .print = NULL, .payload = NULL, .help = "\0"
 
 #define CONFIG_PARSE_FUNC(X)      config_parse_##X
-#define CONFIG_PARSE_IF(X)        void CONFIG_PARSE_FUNC(X) (BaseSequentialStream * chp, char ** values, config_entry_mapping_t * entry)
+#define CONFIG_PARSE_IF(X)        void CONFIG_PARSE_FUNC(X) (BaseSequentialStream * chp, int argc, char ** argv, config_entry_mapping_t * entry)
 #define CONFIG_PARSE_IMPL(X)      \
                                   CONFIG_PARSE_IF(X) \
                                   { \
                                     (void)chp; \
-                                    *((X *)entry->payload)  = (X)strtol(values[1], NULL, 0); \
+                                    (void)argc; \
+                                    *((X *)entry->payload)  = (X)strtol(argv[1], NULL, 0); \
                                   }
 
 

@@ -187,7 +187,7 @@ void config_set_entry_sh(BaseSequentialStream *chp, int argc, char *argv[])
     chprintf(chp, "Cannot find entry for %s\r\n", argv[0]);
     return;
   }
-  if(entry->parse) entry->parse(chp, argv,entry);
+  if(entry->parse) entry->parse(chp, argc, argv, entry);
 }
 
 void config_show_sh(BaseSequentialStream *chp, int argc, char *argv[])
