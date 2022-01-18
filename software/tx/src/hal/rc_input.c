@@ -40,6 +40,7 @@
  */
 #include <string.h>
 #include <assert.h>
+#include <stdlib.h>
 #include "api/app/config.h"
 #include "api/app/config_entries.h"
 
@@ -59,6 +60,8 @@ static void _rc_input_an_start_measurement (void);
 static uint16_t _rc_input_get_an_state(rc_input_ch_an_t line, uint16_t old_value);
 static void _rc_input_an_start_measurement_cb(void *arg);
 static void _rc_input_an_finish_measurement_cb(ADCDriver *adcp);
+static uint8_t rc_input_parse_dig_sm_str_to_line_mode(char * str, uint32_t * dest);
+static  char * rc_input_parse_dig_sm_line_mode_to_str(uint32_t line_mode);
 
 /*
  * Static variables
@@ -68,6 +71,11 @@ static virtual_timer_t _rc_input_adc_start_measurement_vtp;
 static adcsample_t _rc_input_an_samples[RC_INPUT_AN_MAX];
 
 static rc_input_config_t * _rc_input_config = NULL;
+static const rc_input_config_switch_mode_map_t _rc_input_config_switch_mode_map[] = {
+    { "PU", PAL_MODE_INPUT_PULLUP },
+    { "PD", PAL_MODE_INPUT_PULLDOWN }
+};
+
 static rc_input_ch_states_t _rc_input_ch_states[RC_INPUT_MAX] = {
     { .type = RC_INPUT_CH_ANALOG,  .state.analog  = 0 },
     { .type = RC_INPUT_CH_ANALOG,  .state.analog  = 0 },
@@ -109,11 +117,10 @@ static const ADCConversionGroup _rc_input_adc_cfg = {
   ADC_SMPR2_SMP_AN4(ADC_SAMPLE_1P5) | ADC_SMPR2_SMP_AN5(ADC_SAMPLE_1P5) |      /* SMPR2 */
   ADC_SMPR2_SMP_AN6(ADC_SAMPLE_1P5) | ADC_SMPR2_SMP_AN7(ADC_SAMPLE_1P5),       /* SMPR2 */
   ADC_SQR1_NUM_CH(RC_INPUT_AN_MAX),   /* SQR1 */
-  ADC_SQR2_SQ7_N(RC_INPUT_AN_IN7) ,   /* SQR2 */
+  ADC_SQR2_SQ7_N(RC_INPUT_AN_IN6) | ADC_SQR2_SQ8_N(RC_INPUT_AN_IN7) ,   /* SQR2 */
   ADC_SQR3_SQ1_N(RC_INPUT_AN_IN0) | ADC_SQR3_SQ2_N(RC_INPUT_AN_IN1) | /* SQR3 */
-  ADC_SQR3_SQ1_N(RC_INPUT_AN_IN2) | ADC_SQR3_SQ2_N(RC_INPUT_AN_IN3) | /* SQR3 */
-  ADC_SQR3_SQ1_N(RC_INPUT_AN_IN4) | ADC_SQR3_SQ2_N(RC_INPUT_AN_IN5) |  /* SQR3 */
-  ADC_SQR3_SQ1_N(RC_INPUT_AN_IN6),    /* SQR3 */
+  ADC_SQR3_SQ3_N(RC_INPUT_AN_IN2) | ADC_SQR3_SQ4_N(RC_INPUT_AN_IN3) | /* SQR3 */
+  ADC_SQR3_SQ5_N(RC_INPUT_AN_IN4) | ADC_SQR3_SQ6_N(RC_INPUT_AN_IN5),  /* SQR3 */
 };
 static rc_input_ch_analog_t _rc_input_an_in_list[RC_INPUT_AN_MAX] = {
     { .line = RC_INPUT_AN_LINE_IN0, .ch = RC_INPUT_CH0 },
@@ -228,6 +235,7 @@ static void _rc_input_init_hal(void)
   {
     palSetLineMode(_rc_input_an_in_list[sw_id].line, PAL_MODE_INPUT_ANALOG);
   }
+  adcStart(RC_INPUT_AN_DRIVER, NULL);
 
   /*
    * Setup digital lines
@@ -278,6 +286,35 @@ static uint16_t _rc_input_get_an_state(rc_input_ch_an_t line, uint16_t old_value
       /(_rc_input_config->analog_conversion_emph_new + _rc_input_config->analog_conversion_emph_old);
 }
 
+static uint8_t rc_input_parse_dig_sm_str_to_line_mode(char * str, uint32_t * dest)
+{
+  uint8_t i = 0;
+  uint8_t map_len = sizeof(_rc_input_config_switch_mode_map) / sizeof(rc_input_config_switch_mode_map_t);
+  for(i=0; i < map_len; i++)
+  {
+    if(strcmp(str, (char *)_rc_input_config_switch_mode_map[i].name)==0)
+    {
+      *dest = _rc_input_config_switch_mode_map[i].mode;
+      return 0;
+    }
+  }
+  return 1;
+}
+
+static  char * rc_input_parse_dig_sm_line_mode_to_str(uint32_t line_mode)
+{
+  uint8_t i = 0;
+  uint8_t map_len = sizeof(_rc_input_config_switch_mode_map) / sizeof(rc_input_config_switch_mode_map_t);
+  for(i=0; i < map_len; i++)
+  {
+    if(line_mode == _rc_input_config_switch_mode_map[i].mode)
+    {
+      return (char *)_rc_input_config_switch_mode_map[i].name;
+    }
+  }
+  return NULL;
+}
+
 /*
  * Callback functions
  */
@@ -294,13 +331,13 @@ static void _rc_input_an_finish_measurement_cb(ADCDriver *adcp)
   for(ch = 0; ch < RC_INPUT_AN_MAX; ch++)
   {
     chSysLockFromISR();
-    rc_input_state_analog_t * value = &(_rc_input_ch_states[_rc_input_an_in_list[ch].ch].state.analog);
-    *value = _rc_input_get_an_state(ch, *value);
+    rc_input_state_analog_t old = _rc_input_ch_states[_rc_input_an_in_list[ch].ch].state.analog;
+    _rc_input_ch_states[_rc_input_an_in_list[ch].ch].state.analog = _rc_input_get_an_state(ch, old);
     chSysUnlockFromISR();
   }
 }
 
-//#if defined(USE_CMD_SHELL)
+#if defined(USE_CMD_SHELL)
 /*
  * Shell functions
  */
@@ -339,7 +376,7 @@ void rc_input_loop_channels_sh(BaseSequentialStream *chp, int argc, char *argv[]
   }
   chprintf(chp, "\r\n\nstopped\r\n");
 }
-//#endif
+#endif
 
 /*
  * API functions
@@ -360,4 +397,67 @@ void rc_input_get_channel_states(rc_input_ch_states_t *dest)
   chSysLock();
   memcpy(dest, _rc_input_ch_states, sizeof(rc_input_ch_states_t) * RC_INPUT_MAX);
   chSysUnlock();
+}
+
+void rc_input_parse_dig_sm(BaseSequentialStream * chp, int argc, char ** argv, config_entry_mapping_t * entry)
+{
+  uint32_t * digital_switch_mode = entry->payload;
+  uint32_t idx = (uint16_t)strtol(argv[1], NULL, 0);
+  uint8_t error = 0;
+  if(argc < 3)
+  {
+    error = 1;
+  }
+  if(!error)
+  {
+    switch(idx)
+    {
+      case RC_INPUT_DIG_IN0:
+      case RC_INPUT_DIG_IN1:
+      case RC_INPUT_DIG_IN2:
+      case RC_INPUT_DIG_IN3:
+      case RC_INPUT_DIG_IN4:
+      case RC_INPUT_DIG_IN5:
+      case RC_INPUT_DIG_IN6:
+      case RC_INPUT_DIG_IN7:
+        error =  rc_input_parse_dig_sm_str_to_line_mode(argv[2], digital_switch_mode);
+        break;
+      case RC_INPUT_DIG_MAX:
+        if(argc < 10)
+        {
+          error = 1;
+        }
+        else
+        {
+          uint8_t i = 0;
+          for(i=0; i<RC_INPUT_DIG_MAX; i++)
+          {
+            error =  rc_input_parse_dig_sm_str_to_line_mode(argv[i+2], digital_switch_mode);
+            if(error) break;
+          }
+        }
+        break;
+      default:
+        error = 1;
+        break;
+    }
+  }
+  if(error)
+  {
+    chprintf(chp, "Usage:  config-set variable idx value[s]\r\n");
+    chprintf(chp, "        idx=%d...%d to set single entries\r\n", RC_INPUT_DIG_IN0, RC_INPUT_DIG_IN7);
+    chprintf(chp, "        idx=%d to set all entries\r\n", RC_INPUT_DIG_MAX);
+    chprintf(chp, "        value=[PD|PU]\r\n");
+  }
+}
+
+void rc_input_print_dig_sm(BaseSequentialStream * chp, config_entry_mapping_t * entry)
+{
+  uint8_t i = 0;
+  uint32_t * digital_switch_mode = entry->payload;
+  chprintf(chp, "  %-20s",entry->name);
+  for(i=0; i<RC_INPUT_DIG_MAX; i++)
+  {
+      chprintf(chp, " %s", rc_input_parse_dig_sm_line_mode_to_str(digital_switch_mode[i]));
+  }
 }

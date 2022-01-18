@@ -71,7 +71,6 @@ typedef enum
   RC_INPUT_DIG_MAX
 }rc_input_ch_dig_t;
 
-
 typedef enum
 {
   RC_INPUT_CH_ANALOG = 0,
@@ -124,5 +123,11 @@ typedef struct
   uint32_t analog_conversion_emph_new;
   uint32_t loop_cmd_period_ms;
 }rc_input_config_t;
+
+typedef struct
+{
+  const char *const name;
+  uint32_t mode;
+}rc_input_config_switch_mode_map_t;
 
 #endif /* INC_TYPES_HAL_RC_INPUT_TYPES_H_ */

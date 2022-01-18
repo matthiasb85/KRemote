@@ -73,7 +73,7 @@ static const config_entry_mapping_t _config_entries_mapping[] = {
     { CONFIG_SECTION_DIVIDER("kr-tx config entries") },
     { .name = "kr-tx",    .parse = CONFIG_PARSE_FUNC(uint32_t), .print = CONFIG_PRINT_FUNC(dec,uint32_t), .payload = &_config_entries_config.kr_tx, .help ="kr-tx value"},
     { CONFIG_SECTION_DIVIDER("rc-input config entries") },
-    { .name = "ri-dig-sm",      .parse = CONFIG_PARSE_FUNC(uint32_t), .print = CONFIG_PRINT_FUNC(dec,uint32_t), .payload = &_config_entries_config.rc_input.digital_switch_mode,         .help = "Digital switch mode"},
+    { .name = "ri-dig-sm",      .parse = rc_input_parse_dig_sm,       .print = rc_input_print_dig_sm,           .payload = &_config_entries_config.rc_input.digital_switch_mode,         .help = "Digital switch mode"},
     { .name = "ri-poll-p",      .parse = CONFIG_PARSE_FUNC(uint32_t), .print = CONFIG_PRINT_FUNC(dec,uint32_t), .payload = &_config_entries_config.rc_input.poll_thread_prio,            .help = "Poll thread priority"},
     { .name = "ri-poll-ms",     .parse = CONFIG_PARSE_FUNC(uint32_t), .print = CONFIG_PRINT_FUNC(dec,uint32_t), .payload = &_config_entries_config.rc_input.poll_thread_period_ms,       .help = "Period in ms for poll thread"},
     { .name = "ri-vtp-ms",      .parse = CONFIG_PARSE_FUNC(uint32_t), .print = CONFIG_PRINT_FUNC(dec,uint32_t), .payload = &_config_entries_config.rc_input.analog_conversion_period_ms, .help = "Period in ms for virtual timer"},
