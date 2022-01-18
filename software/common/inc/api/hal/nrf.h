@@ -27,7 +27,8 @@
 #include "cfg/hal/nrf_cfg.h"
 #include "types/hal/nrf_types.h"
 
-extern void kr_tx_init(void);
-
+extern void nrf_init(void);
+extern void nrf_receive_payload(void * dest, uint8_t size);
+extern void nrf_send_payload(void * src, uint8_t size);
 
 #endif /* COMMON_INC_API_HAL_NRF_H_ */
