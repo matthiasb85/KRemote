@@ -53,8 +53,8 @@ static config_entries_t _config_entries_config = {
       .config_size = sizeof(config_entries_t),
     },
     .kr_rx = 0,
-    .rc_input = {
-        .digital_switch_mode = {
+    .rc_output = {
+        .digital_output_mode = {
             PAL_MODE_OUTPUT_OPENDRAIN, PAL_MODE_OUTPUT_OPENDRAIN , PAL_MODE_OUTPUT_OPENDRAIN ,PAL_MODE_OUTPUT_OPENDRAIN,
             PAL_MODE_OUTPUT_OPENDRAIN, PAL_MODE_OUTPUT_OPENDRAIN , PAL_MODE_OUTPUT_OPENDRAIN ,PAL_MODE_OUTPUT_OPENDRAIN,
             PAL_MODE_OUTPUT_OPENDRAIN, PAL_MODE_OUTPUT_OPENDRAIN , PAL_MODE_OUTPUT_OPENDRAIN ,PAL_MODE_OUTPUT_OPENDRAIN
@@ -63,11 +63,11 @@ static config_entries_t _config_entries_config = {
     },
     .nrf = {
         .mode = NRF_MODE_RX,
-        .pa_level = NRF_PA_HIGH,
-        .datarate = NRF_1MBPS,
-        .channel = 79,
-        .address_width = NRF_AW_5BYTE,
-        .address = {0x13, 0x37, 0xab, 0xcd, 0xef},
+        .pa_level = NRF_DEFAULT_PA,
+        .datarate = NRF_DEFAULT_DA,
+        .channel = NRF_DEFAULT_CH,
+        .address_width = NRF_DEFAULT_AW,
+        .address = NRF_DEFAULT_AD,
         .event_thread_prio = NRF_EVENT_THREAD_PRIO,
     },
     .usb = 0
@@ -76,9 +76,9 @@ static config_entries_t _config_entries_config = {
 static const config_entry_mapping_t _config_entries_mapping[] = {
     { CONFIG_SECTION_DIVIDER("kr-tx config entries") },
     { .name = "kr-rx",    .parse = CONFIG_PARSE_FUNC(uint32_t), .print = CONFIG_PRINT_FUNC(dec,uint32_t), .payload = &_config_entries_config.kr_rx, .help ="kr-rx value"},
-    { CONFIG_SECTION_DIVIDER("rc-input config entries") },
-    { .name = "ri-dig-sm",      .parse = CONFIG_PARSE_FUNC(uint32_t), .print = CONFIG_PRINT_FUNC(dec,uint32_t),           .payload = &_config_entries_config.rc_input.digital_switch_mode,         .help = "Digital switch mode"},
-    { .name = "ri-loop-ms",     .parse = CONFIG_PARSE_FUNC(uint32_t), .print = CONFIG_PRINT_FUNC(dec,uint32_t), .payload = &_config_entries_config.rc_input.loop_cmd_period_ms,    .help = "Period in ms for loop cmd"},
+    { CONFIG_SECTION_DIVIDER("rc-output config entries") },
+    { .name = "ro-dig-om",      .parse = rc_output_parse_dig_sm,      .print = rc_input_print_dig_sm,           .payload = &_config_entries_config.rc_output.digital_output_mode,   .help = "Digital output mode"},
+    { .name = "ro-loop-ms",     .parse = CONFIG_PARSE_FUNC(uint32_t), .print = CONFIG_PRINT_FUNC(dec,uint32_t), .payload = &_config_entries_config.rc_output.loop_cmd_period_ms,    .help = "Period in ms for loop cmd"},
     { CONFIG_SECTION_DIVIDER("nrf config entries") },
     { .name = "nrf",      .parse = CONFIG_PARSE_FUNC(uint32_t), .print = CONFIG_PRINT_FUNC(hex,uint8_t),  .payload = &_config_entries_config.nrf, .help ="nrf value"},
     { .name = "\0",       .parse = NULL,             .print = NULL,              .payload = NULL}
@@ -86,7 +86,7 @@ static const config_entry_mapping_t _config_entries_mapping[] = {
 
 static void * _config_entries_module_list[] = {
     &_config_entries_config.kr_rx,
-    &_config_entries_config.rc_input,
+    &_config_entries_config.rc_output,
     &_config_entries_config.nrf,
     &_config_entries_config.usb
 };

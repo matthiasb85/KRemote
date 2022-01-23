@@ -58,6 +58,8 @@ static void _rc_output_init_hal(void);
 static void _rc_output_init_module(void);
 static void _rc_output_set_analog(uint8_t channel, uint16_t value);
 static void _rc_output_set_digital(uint8_t channel, uint16_t value);
+static uint8_t _rc_output_parse_dig_om_str_to_line_mode(char * str, uint32_t * dest);
+static  char * _rc_input_parse_dig_sm_line_mode_to_str(uint32_t line_mode);
 
 /*
  * Static variables
@@ -99,6 +101,11 @@ static PWMConfig _rc_output_pwmd_cfg = {
 };
 static uint32_t _rc_output_pwm_duty_cycles[RC_OUTPUT_AN_MAX];
 static uint16_t _rc_output_dig_output_state = 0;
+static const rc_output_config_output_mode_map_t _rc_output_config_output_mode_map[] = {
+    { "PP", PAL_MODE_OUTPUT_PUSHPULL },
+    { "OD", PAL_MODE_OUTPUT_OPENDRAIN }
+};
+
 
 /*
  * Global variables
@@ -121,7 +128,7 @@ static void _rc_output_init_hal(void)
     switch(_rc_output[i].type)
     {
       case RC_OUTPUT_CH_ANALOG: line_mode = PAL_MODE_STM32_ALTERNATE_PUSHPULL; break;
-      case RC_OUTPUT_CH_DIGITAL:line_mode = _rc_output_config->digital_switch_mode[_rc_output[i].id.dig]; break;
+      case RC_OUTPUT_CH_DIGITAL:line_mode = _rc_output_config->digital_output_mode[_rc_output[i].id.dig]; break;
     }
     palSetLineMode(_rc_output[i].line, line_mode);
   }
@@ -165,6 +172,35 @@ static void _rc_output_set_digital(uint8_t channel, uint16_t value)
     palClearLine(line);
     _rc_output_dig_output_state &= ~(1 << ch);
   }
+}
+
+static uint8_t _rc_output_parse_dig_om_str_to_line_mode(char * str, uint32_t * dest)
+{
+  uint8_t i = 0;
+  uint8_t map_len = sizeof(_rc_output_config_output_mode_map) / sizeof(rc_output_config_output_mode_map_t);
+  for(i=0; i < map_len; i++)
+  {
+    if(strcmp(str, (char *)_rc_output_config_output_mode_map[i].name)==0)
+    {
+      *dest = _rc_output_config_output_mode_map[i].mode;
+      return 0;
+    }
+  }
+  return 1;
+}
+
+static  char * _rc_input_parse_dig_om_line_mode_to_str(uint32_t line_mode)
+{
+  uint8_t i = 0;
+  uint8_t map_len = sizeof(_rc_output_config_output_mode_map) / sizeof(rc_output_config_output_mode_map_t);
+  for(i=0; i < map_len; i++)
+  {
+    if(line_mode == _rc_output_config_output_mode_map[i].mode)
+    {
+      return (char *)_rc_output_config_output_mode_map[i].name;
+    }
+  }
+  return NULL;
 }
 
 /*
@@ -259,3 +295,71 @@ void rc_output_set(rc_output_ch_t ch, uint16_t value)
     case RC_OUTPUT_CH_DIGITAL: _rc_output_set_digital(ch, value); break;
   }
 }
+
+void rc_output_parse_dig_sm(BaseSequentialStream * chp, int argc, char ** argv, config_entry_mapping_t * entry)
+{
+  uint32_t * digital_output_mode = entry->payload;
+  uint32_t idx = (uint16_t)strtol(argv[1], NULL, 0);
+  uint8_t error = 0;
+  if(argc < 3)
+  {
+    error = 1;
+  }
+  if(!error)
+  {
+    switch(idx)
+    {
+      case RC_OUTPUT_DIG_OUT0:
+      case RC_OUTPUT_DIG_OUT1:
+      case RC_OUTPUT_DIG_OUT2:
+      case RC_OUTPUT_DIG_OUT3:
+      case RC_OUTPUT_DIG_OUT4:
+      case RC_OUTPUT_DIG_OUT5:
+      case RC_OUTPUT_DIG_OUT6:
+      case RC_OUTPUT_DIG_OUT7:
+      case RC_OUTPUT_DIG_OUT8:
+      case RC_OUTPUT_DIG_OUT9:
+      case RC_OUTPUT_DIG_OUT10:
+      case RC_OUTPUT_DIG_OUT11:
+        error =  _rc_output_parse_dig_om_str_to_line_mode(argv[2], digital_output_mode);
+        break;
+      case RC_OUTPUT_DIG_MAX:
+        if(argc < 10)
+        {
+          error = 1;
+        }
+        else
+        {
+          uint8_t i = 0;
+          for(i=0; i<RC_OUTPUT_DIG_MAX; i++)
+          {
+            error =  _rc_output_parse_dig_om_str_to_line_mode(argv[i+2], digital_output_mode);
+            if(error) break;
+          }
+        }
+        break;
+      default:
+        error = 1;
+        break;
+    }
+  }
+  if(error)
+  {
+    chprintf(chp, "Usage:  config-set variable idx value[s]\r\n");
+    chprintf(chp, "        idx=%d...%d to set single entries\r\n", RC_OUTPUT_DIG_OUT0, RC_OUTPUT_DIG_OUT11);
+    chprintf(chp, "        idx=%d to set all entries\r\n", RC_OUTPUT_DIG_MAX);
+    chprintf(chp, "        value=[PP|OD]\r\n");
+  }
+}
+
+void rc_input_print_dig_sm(BaseSequentialStream * chp, config_entry_mapping_t * entry)
+{
+  uint8_t i = 0;
+  uint32_t * digital_output_mode = entry->payload;
+  chprintf(chp, "  %-20s",entry->name);
+  for(i=0; i<RC_OUTPUT_DIG_MAX; i++)
+  {
+      chprintf(chp, " %s", _rc_input_parse_dig_om_line_mode_to_str(digital_output_mode[i]));
+  }
+}
+

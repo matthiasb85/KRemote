@@ -42,7 +42,7 @@ typedef struct
 {
   flash_storage_header_t header;
   uint32_t kr_rx;
-  rc_output_config_t rc_input;
+  rc_output_config_t rc_output;
   nrf_config_t nrf;
   uint32_t usb;
 }config_entries_t;

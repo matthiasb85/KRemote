@@ -60,8 +60,8 @@ static void _rc_input_an_start_measurement (void);
 static uint16_t _rc_input_get_an_state(rc_input_ch_an_t line, uint16_t old_value);
 static void _rc_input_an_start_measurement_cb(void *arg);
 static void _rc_input_an_finish_measurement_cb(ADCDriver *adcp);
-static uint8_t rc_input_parse_dig_sm_str_to_line_mode(char * str, uint32_t * dest);
-static  char * rc_input_parse_dig_sm_line_mode_to_str(uint32_t line_mode);
+static uint8_t _rc_input_parse_dig_sm_str_to_line_mode(char * str, uint32_t * dest);
+static  char * _rc_input_parse_dig_sm_line_mode_to_str(uint32_t line_mode);
 
 /*
  * Static variables
@@ -286,7 +286,7 @@ static uint16_t _rc_input_get_an_state(rc_input_ch_an_t line, uint16_t old_value
       /(_rc_input_config->analog_conversion_emph_new + _rc_input_config->analog_conversion_emph_old);
 }
 
-static uint8_t rc_input_parse_dig_sm_str_to_line_mode(char * str, uint32_t * dest)
+static uint8_t _rc_input_parse_dig_sm_str_to_line_mode(char * str, uint32_t * dest)
 {
   uint8_t i = 0;
   uint8_t map_len = sizeof(_rc_input_config_switch_mode_map) / sizeof(rc_input_config_switch_mode_map_t);
@@ -301,7 +301,7 @@ static uint8_t rc_input_parse_dig_sm_str_to_line_mode(char * str, uint32_t * des
   return 1;
 }
 
-static  char * rc_input_parse_dig_sm_line_mode_to_str(uint32_t line_mode)
+static  char * _rc_input_parse_dig_sm_line_mode_to_str(uint32_t line_mode)
 {
   uint8_t i = 0;
   uint8_t map_len = sizeof(_rc_input_config_switch_mode_map) / sizeof(rc_input_config_switch_mode_map_t);
@@ -420,7 +420,7 @@ void rc_input_parse_dig_sm(BaseSequentialStream * chp, int argc, char ** argv, c
       case RC_INPUT_DIG_IN5:
       case RC_INPUT_DIG_IN6:
       case RC_INPUT_DIG_IN7:
-        error =  rc_input_parse_dig_sm_str_to_line_mode(argv[2], digital_switch_mode);
+        error =  _rc_input_parse_dig_sm_str_to_line_mode(argv[2], digital_switch_mode);
         break;
       case RC_INPUT_DIG_MAX:
         if(argc < 10)
@@ -432,7 +432,7 @@ void rc_input_parse_dig_sm(BaseSequentialStream * chp, int argc, char ** argv, c
           uint8_t i = 0;
           for(i=0; i<RC_INPUT_DIG_MAX; i++)
           {
-            error =  rc_input_parse_dig_sm_str_to_line_mode(argv[i+2], digital_switch_mode);
+            error =  _rc_input_parse_dig_sm_str_to_line_mode(argv[i+2], digital_switch_mode);
             if(error) break;
           }
         }
@@ -458,6 +458,6 @@ void rc_input_print_dig_sm(BaseSequentialStream * chp, config_entry_mapping_t * 
   chprintf(chp, "  %-20s",entry->name);
   for(i=0; i<RC_INPUT_DIG_MAX; i++)
   {
-      chprintf(chp, " %s", rc_input_parse_dig_sm_line_mode_to_str(digital_switch_mode[i]));
+      chprintf(chp, " %s", _rc_input_parse_dig_sm_line_mode_to_str(digital_switch_mode[i]));
   }
 }

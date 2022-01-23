@@ -66,12 +66,12 @@ static config_entries_t _config_entries_config = {
         .loop_cmd_period_ms = RC_INPUT_LOOP_CMD_P_MS
     },
     .nrf = {
-        .mode = NRF_MODE_RX,
-        .pa_level = NRF_PA_HIGH,
-        .datarate = NRF_1MBPS,
-        .channel = 79,
-        .address_width = NRF_AW_5BYTE,
-        .address = {0x13, 0x37, 0xab, 0xcd, 0xef},
+        .mode = NRF_MODE_TX,
+        .pa_level = NRF_DEFAULT_PA,
+        .datarate = NRF_DEFAULT_DA,
+        .channel = NRF_DEFAULT_CH,
+        .address_width = NRF_DEFAULT_AW,
+        .address = NRF_DEFAULT_AD,
         .event_thread_prio = NRF_EVENT_THREAD_PRIO,
     },
     .usb = 0
