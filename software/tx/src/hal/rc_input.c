@@ -372,7 +372,7 @@ void rc_input_loop_channels_sh(BaseSequentialStream *chp, int argc, char *argv[]
             _rc_input_ch_states[ch].state.digital));
       }
       chprintf(chp, "\r");
-      chThdSleepUntilWindowed(time, time + TIME_MS2I(_rc_input_config->poll_thread_period_ms));
+      chThdSleepUntilWindowed(time, time + TIME_MS2I(_rc_input_config->loop_cmd_period_ms));
   }
   chprintf(chp, "\r\n\nstopped\r\n");
 }
