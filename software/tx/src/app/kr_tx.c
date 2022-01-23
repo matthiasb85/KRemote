@@ -38,6 +38,7 @@
 /*
  * Include dependencies
  */
+#include "api/app/kr.h"
 #include "api/app/cmd_shell.h"
 #include "api/app/config.h"
 #include "api/hal/flash_storage.h"
@@ -52,8 +53,6 @@
 /*
  * Static asserts
  */
-//static_assert(ANYKEY_NUMBER_OF_KEYS == (KEYPAD_SW_COUNT),
-//              "Number of keys does not match number used keypad switches");
 
 /*
  * Forward declarations of static functions
@@ -65,6 +64,7 @@ static void _kr_tx_init_module(void);
  * Static variables
  */
 static THD_WORKING_AREA(_kr_tx_main_stack, KR_TX_MAIN_THREAD_STACK);
+static kr_transmit_frame_t _kr_tx_frame;
 
 /*
  * Global variables
@@ -77,7 +77,8 @@ static __attribute__((noreturn)) THD_FUNCTION(_kr_tx_main_thread, arg)
 {
   (void)arg;
   systime_t time = 0;
-
+  uint8_t i = 0;
+  uint8_t x = 0;
   chRegSetThreadName("kr_tx_main_th");
 
   /*
@@ -86,7 +87,11 @@ static __attribute__((noreturn)) THD_FUNCTION(_kr_tx_main_thread, arg)
   while (true)
   {
     time = chVTGetSystemTimeX();
-    // do something
+    for(i=0; i < KR_CHANNEL_NUMBER; i++)
+    {
+      _kr_tx_frame.channels[i] = x++;
+    }
+//    nrf_send_payload(&_kr_tx_frame, sizeof(_kr_tx_frame));
     chThdSleepUntilWindowed(time, time + TIME_MS2I(1000));
   }
 }
@@ -149,7 +154,7 @@ void kr_tx_init(void)
   /*
    * Project specific hal initialization
    */
-  //nrf_init();
+  nrf_init();
   rc_input_init();
 
 #if defined(USE_CMD_SHELL)

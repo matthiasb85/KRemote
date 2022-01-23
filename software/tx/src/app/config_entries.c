@@ -65,7 +65,15 @@ static config_entries_t _config_entries_config = {
         .poll_thread_period_ms = RC_INPUT_POLL_MAIN_THREAD_P_MS,
         .loop_cmd_period_ms = RC_INPUT_LOOP_CMD_P_MS
     },
-    .nrf = 0,
+    .nrf = {
+        .mode = NRF_MODE_RX,
+        .pa_level = NRF_PA_HIGH,
+        .datarate = NRF_1MBPS,
+        .channel = 79,
+        .address_width = NRF_AW_5BYTE,
+        .address = {0x13, 0x37, 0xab, 0xcd, 0xef},
+        .event_thread_prio = NRF_EVENT_THREAD_PRIO,
+    },
     .usb = 0
 };
 

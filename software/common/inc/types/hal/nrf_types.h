@@ -26,6 +26,12 @@
 
 typedef enum
 {
+  NRF_CONNECTION_LOST = 0,
+  NRF_CONNECTION_ESTABLISHED
+}nrf_connection_state_t;
+
+typedef enum
+{
   NRF_MODE_TX = 0,
   NRF_MODE_RX
 }nrf_mode_t;
@@ -47,6 +53,13 @@ typedef enum
 
 typedef enum
 {
+    NRF_AW_3BYTE = 1,
+    NRF_AW_4BYTE,
+    NRF_AW_5BYTE
+} nrf_addr_width_t;
+
+typedef enum
+{
   NRF_READ_REG = 0,
   NRF_WRITE_REG,
   NRF_READ_RX,
@@ -59,6 +72,12 @@ typedef enum
   NRF_WRITE_TX_NO_ACK,
   NRF_NOP,
 } nrf_commands_t;
+
+typedef struct
+{
+  uint8_t reg;
+  uint8_t value;
+} nrf_reg_write_read_cmd_t;
 
 typedef enum
 {
@@ -89,6 +108,7 @@ typedef enum
   NRF_REG_NA_ACK_PLD,
   NRF_REG_NA_TX_PLD,
   NRF_REG_NA_RX_PLD,
+  NRF_REG_DUMMY,
   NRF_REG_DYNPD,
   NRF_REG_FEATURE
 }nrf_registers_t;
@@ -100,8 +120,64 @@ typedef struct
   nrf_pa_dbm_t pa_level;
   nrf_datarate_t datarate;
   uint8_t channel;
+  nrf_addr_width_t address_width;
   uint8_t address[NRF_ADDR_LENGTH];
+  uint32_t event_thread_prio;
 }nrf_config_t;
 
+#define NRF_PIN_WAIT(X)     { \
+                              uint16_t i = 0; \
+                              for(i=0; i < (X); i++) \
+                                    asm volatile("nop"); \
+                            } \
+
+
+#define NRF_BIT_MASK_RX_DR  6
+#define NRF_BIT_MASK_TX_DS  5
+#define NRF_BIT_MASK_MAX_RT 4
+#define NRF_BIT_EN_CRC      3
+#define NRF_BIT_CRCO        2
+#define NRF_BIT_PWR_UP      1
+#define NRF_BIT_PRIM_RX     0
+#define NRF_BIT_ENAA_P5     5
+#define NRF_BIT_ENAA_P4     4
+#define NRF_BIT_ENAA_P3     3
+#define NRF_BIT_ENAA_P2     2
+#define NRF_BIT_ENAA_P1     1
+#define NRF_BIT_ENAA_P0     0
+#define NRF_BIT_ERX_P5      5
+#define NRF_BIT_ERX_P4      4
+#define NRF_BIT_ERX_P3      3
+#define NRF_BIT_ERX_P2      2
+#define NRF_BIT_ERX_P1      1
+#define NRF_BIT_ERX_P0      0
+#define NRF_BIT_AW          0
+#define NRF_BIT_ARD         4
+#define NRF_BIT_ARC         0
+#define NRF_BIT_PLL_LOCK    4
+#define NRF_BIT_CONT_WAVE   7
+#define NRF_BIT_RF_DR       3
+#define NRF_BIT_RF_PWR      1
+#define NRF_BIT_RX_DR       6
+#define NRF_BIT_TX_DS       5
+#define NRF_BIT_MAX_RT      4
+#define NRF_BIT_RX_P_NO     1
+#define NRF_BIT_TX_FULL     0
+#define NRF_BIT_PLOS_CNT    4
+#define NRF_BIT_ARC_CNT     0
+#define NRF_BIT_TX_REUSE    6
+#define NRF_BIT_FIFO_FULL   5
+#define NRF_BIT_TX_EMPTY    4
+#define NRF_BIT_RX_FULL     1
+#define NRF_BIT_RX_EMPTY    0
+#define NRF_BIT_DPL_P5      5
+#define NRF_BIT_DPL_P4      4
+#define NRF_BIT_DPL_P3      3
+#define NRF_BIT_DPL_P2      2
+#define NRF_BIT_DPL_P1      1
+#define NRF_BIT_DPL_P0      0
+#define NRF_BIT_EN_DPL      2
+#define NRF_BIT_EN_ACK_PAY  1
+#define NRF_BIT_EN_DYN_ACK  0
 
 #endif /* COMMON_INC_TYPES_HAL_NRF_TYPES_H_ */

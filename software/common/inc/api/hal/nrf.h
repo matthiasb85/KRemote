@@ -29,6 +29,7 @@
 
 extern void nrf_init(void);
 extern void nrf_receive_payload(void * dest, uint8_t size);
-extern void nrf_send_payload(void * src, uint8_t size);
+extern uint8_t nrf_send_payload(void * src, uint8_t size);
+extern nrf_connection_state_t nrf_get_connection_state(void);
 
 #endif /* COMMON_INC_API_HAL_NRF_H_ */
