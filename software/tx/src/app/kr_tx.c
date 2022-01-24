@@ -91,7 +91,7 @@ static __attribute__((noreturn)) THD_FUNCTION(_kr_tx_main_thread, arg)
     {
       _kr_tx_frame.channels[i] = x++;
     }
-//    nrf_send_payload(&_kr_tx_frame, sizeof(_kr_tx_frame));
+    nrf_send_payload(&_kr_tx_frame, sizeof(_kr_tx_frame));
     chThdSleepUntilWindowed(time, time + TIME_MS2I(1000));
   }
 }

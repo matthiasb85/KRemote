@@ -47,11 +47,18 @@ static void _cmd_shell_init_module(void);
 /*
  * Static variables
  */
+char _cmd_history_buffer[SHELL_MAX_HIST_BUFF];
+char * _cmd_completion_buffer[SHELL_MAX_COMPLETIONS];
+
+
 // clang-format off
 
 static const ShellConfig _cmd_shell_cfg = {
   (BaseSequentialStream *)&USB_CDC_DRIVER_HANDLE,
-  cmd_shell_cmds_list
+  cmd_shell_cmds_list,
+  _cmd_history_buffer,
+  sizeof(_cmd_history_buffer),
+  _cmd_completion_buffer
 };
 // clang-format on
 

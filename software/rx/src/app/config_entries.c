@@ -63,12 +63,7 @@ static config_entries_t _config_entries_config = {
     },
     .nrf = {
         .mode = NRF_MODE_RX,
-        .pa_level = NRF_DEFAULT_PA,
-        .datarate = NRF_DEFAULT_DA,
-        .channel = NRF_DEFAULT_CH,
-        .address_width = NRF_DEFAULT_AW,
-        .address = NRF_DEFAULT_AD,
-        .event_thread_prio = NRF_EVENT_THREAD_PRIO,
+        NRF_CONFIG_COMMON_DEFAULTS,
     },
     .usb = 0
 };
@@ -77,10 +72,10 @@ static const config_entry_mapping_t _config_entries_mapping[] = {
     { CONFIG_SECTION_DIVIDER("kr-tx config entries") },
     { .name = "kr-rx",    .parse = CONFIG_PARSE_FUNC(uint32_t), .print = CONFIG_PRINT_FUNC(dec,uint32_t), .payload = &_config_entries_config.kr_rx, .help ="kr-rx value"},
     { CONFIG_SECTION_DIVIDER("rc-output config entries") },
-    { .name = "ro-dig-om",      .parse = rc_output_parse_dig_sm,      .print = rc_input_print_dig_sm,           .payload = &_config_entries_config.rc_output.digital_output_mode,   .help = "Digital output mode"},
+    { .name = "ro-dig-om",      .parse = rc_output_parse_dig_sm,      .print = rc_output_print_dig_sm,          .payload = &_config_entries_config.rc_output.digital_output_mode,   .help = "Digital output mode"},
     { .name = "ro-loop-ms",     .parse = CONFIG_PARSE_FUNC(uint32_t), .print = CONFIG_PRINT_FUNC(dec,uint32_t), .payload = &_config_entries_config.rc_output.loop_cmd_period_ms,    .help = "Period in ms for loop cmd"},
     { CONFIG_SECTION_DIVIDER("nrf config entries") },
-    { .name = "nrf",      .parse = CONFIG_PARSE_FUNC(uint32_t), .print = CONFIG_PRINT_FUNC(hex,uint8_t),  .payload = &_config_entries_config.nrf, .help ="nrf value"},
+    NRF_CONFIG_MAP_ENTRIES,
     { .name = "\0",       .parse = NULL,             .print = NULL,              .payload = NULL}
 };
 

@@ -121,9 +121,16 @@ typedef struct
   nrf_datarate_t datarate;
   uint8_t channel;
   nrf_addr_width_t address_width;
-  uint8_t address[NRF_ADDR_LENGTH];
+  uint8_t address[NRF_MAX_ADDR_LENGTH];
   uint32_t event_thread_prio;
+  uint16_t rx_timeout;
 }nrf_config_t;
+
+typedef struct
+{
+  const char *const name;
+  uint32_t mode;
+}nrf_config_mode_map_t;
 
 #define NRF_PIN_WAIT(X)     { \
                               uint16_t i = 0; \
@@ -179,5 +186,24 @@ typedef struct
 #define NRF_BIT_EN_DPL      2
 #define NRF_BIT_EN_ACK_PAY  1
 #define NRF_BIT_EN_DYN_ACK  0
+
+#define NRF_CONFIG_COMMON_DEFAULTS \
+    .pa_level = NRF_DEFAULT_PA, \
+    .datarate = NRF_DEFAULT_DA, \
+    .channel = NRF_DEFAULT_CH, \
+    .address_width = NRF_DEFAULT_AW, \
+    .address = NRF_DEFAULT_AD, \
+    .event_thread_prio = NRF_EVENT_THREAD_PRIO, \
+    .rx_timeout = NRF_DEFAULT_RXT
+
+#define NRF_CONFIG_MAP_ENTRIES \
+    { .name = "nrf-mode", .parse = nrf_parse_config, .print = nrf_print_config,  .payload = &_config_entries_config.nrf.mode, .help ="nrf operation mode"}, \
+    { .name = "nrf-pa",   .parse = nrf_parse_config, .print = nrf_print_config,  .payload = &_config_entries_config.nrf.pa_level, .help ="nrf PA level"}, \
+    { .name = "nrf-dr",   .parse = nrf_parse_config, .print = nrf_print_config,  .payload = &_config_entries_config.nrf.datarate, .help ="nrf datarate"}, \
+    { .name = "nrf-aw",   .parse = nrf_parse_config, .print = nrf_print_config,  .payload = &_config_entries_config.nrf.address_width, .help ="nrf address width"}, \
+    { .name = "nrf-ch",   .parse = CONFIG_PARSE_FUNC(uint8_t), .print = CONFIG_PRINT_FUNC(dec,uint8_t), .payload = &_config_entries_config.nrf.channel, .help ="nrf channel"}, \
+    { .name = "nrf-rxt",  .parse = CONFIG_PARSE_FUNC(uint16_t), .print = CONFIG_PRINT_FUNC(dec,uint16_t), .payload = &_config_entries_config.nrf.rx_timeout,    .help ="nrf RX timeout *10ms"}, \
+    { .name = "nrf-ad",   .parse = nrf_parse_config_ad,         .print = nrf_print_config_ad,             .payload = &_config_entries_config.nrf.address,       .help ="nrf address"}
+
 
 #endif /* COMMON_INC_TYPES_HAL_NRF_TYPES_H_ */

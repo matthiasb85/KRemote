@@ -59,7 +59,7 @@ static void _rc_output_init_module(void);
 static void _rc_output_set_analog(uint8_t channel, uint16_t value);
 static void _rc_output_set_digital(uint8_t channel, uint16_t value);
 static uint8_t _rc_output_parse_dig_om_str_to_line_mode(char * str, uint32_t * dest);
-static  char * _rc_input_parse_dig_sm_line_mode_to_str(uint32_t line_mode);
+static  char * _rc_output_parse_dig_om_line_mode_to_str(uint32_t line_mode);
 
 /*
  * Static variables
@@ -189,7 +189,7 @@ static uint8_t _rc_output_parse_dig_om_str_to_line_mode(char * str, uint32_t * d
   return 1;
 }
 
-static  char * _rc_input_parse_dig_om_line_mode_to_str(uint32_t line_mode)
+static  char *  _rc_output_parse_dig_om_line_mode_to_str(uint32_t line_mode)
 {
   uint8_t i = 0;
   uint8_t map_len = sizeof(_rc_output_config_output_mode_map) / sizeof(rc_output_config_output_mode_map_t);
@@ -352,14 +352,14 @@ void rc_output_parse_dig_sm(BaseSequentialStream * chp, int argc, char ** argv, 
   }
 }
 
-void rc_input_print_dig_sm(BaseSequentialStream * chp, config_entry_mapping_t * entry)
+void rc_output_print_dig_sm(BaseSequentialStream * chp, config_entry_mapping_t * entry)
 {
   uint8_t i = 0;
   uint32_t * digital_output_mode = entry->payload;
   chprintf(chp, "  %-20s",entry->name);
   for(i=0; i<RC_OUTPUT_DIG_MAX; i++)
   {
-      chprintf(chp, " %s", _rc_input_parse_dig_om_line_mode_to_str(digital_output_mode[i]));
+      chprintf(chp, " %s", _rc_output_parse_dig_om_line_mode_to_str(digital_output_mode[i]));
   }
 }
 

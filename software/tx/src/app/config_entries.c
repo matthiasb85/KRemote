@@ -67,12 +67,7 @@ static config_entries_t _config_entries_config = {
     },
     .nrf = {
         .mode = NRF_MODE_TX,
-        .pa_level = NRF_DEFAULT_PA,
-        .datarate = NRF_DEFAULT_DA,
-        .channel = NRF_DEFAULT_CH,
-        .address_width = NRF_DEFAULT_AW,
-        .address = NRF_DEFAULT_AD,
-        .event_thread_prio = NRF_EVENT_THREAD_PRIO,
+        NRF_CONFIG_COMMON_DEFAULTS,
     },
     .usb = 0
 };
@@ -89,7 +84,7 @@ static const config_entry_mapping_t _config_entries_mapping[] = {
     { .name = "ri-an-emph-new", .parse = CONFIG_PARSE_FUNC(uint32_t), .print = CONFIG_PRINT_FUNC(dec,uint32_t), .payload = &_config_entries_config.rc_input.analog_conversion_emph_new,  .help = "Emphasis for new analog value"},
     { .name = "ri-loop-ms",     .parse = CONFIG_PARSE_FUNC(uint32_t), .print = CONFIG_PRINT_FUNC(dec,uint32_t), .payload = &_config_entries_config.rc_input.loop_cmd_period_ms,    .help = "Period in ms for loop cmd"},
     { CONFIG_SECTION_DIVIDER("nrf config entries") },
-    { .name = "nrf",      .parse = CONFIG_PARSE_FUNC(uint32_t), .print = CONFIG_PRINT_FUNC(hex,uint8_t),  .payload = &_config_entries_config.nrf, .help ="nrf value"},
+    NRF_CONFIG_MAP_ENTRIES,
     { .name = "\0",       .parse = NULL,             .print = NULL,              .payload = NULL}
 };
 
