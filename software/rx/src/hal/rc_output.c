@@ -239,7 +239,7 @@ void rc_output_loop_channels_sh(BaseSequentialStream *chp, int argc, char *argv[
       {
         chprintf(chp, "%7d",((_rc_output[ch].type == RC_OUTPUT_CH_ANALOG) ?
             _rc_output_pwm_duty_cycles[_rc_output[ch].id.an] :
-            (_rc_output_dig_output_state & (1 << _rc_output[ch].id.dig))));
+            (_rc_output_dig_output_state & (1 << _rc_output[ch].id.dig)) ? 1 : 0));
       }
       chprintf(chp, "\r");
       chThdSleepUntilWindowed(time, time + TIME_MS2I(_rc_output_config->loop_cmd_period_ms));
@@ -321,19 +321,14 @@ void rc_output_parse_dig_sm(BaseSequentialStream * chp, int argc, char ** argv, 
       case RC_OUTPUT_DIG_OUT9:
       case RC_OUTPUT_DIG_OUT10:
       case RC_OUTPUT_DIG_OUT11:
-        error =  _rc_output_parse_dig_om_str_to_line_mode(argv[2], digital_output_mode);
+        error =  _rc_output_parse_dig_om_str_to_line_mode(argv[2], &digital_output_mode[idx]);
         break;
       case RC_OUTPUT_DIG_MAX:
-        if(argc < 10)
-        {
-          error = 1;
-        }
-        else
         {
           uint8_t i = 0;
           for(i=0; i<RC_OUTPUT_DIG_MAX; i++)
           {
-            error =  _rc_output_parse_dig_om_str_to_line_mode(argv[i+2], digital_output_mode);
+            error =  _rc_output_parse_dig_om_str_to_line_mode(argv[2], &digital_output_mode[i]);
             if(error) break;
           }
         }
@@ -345,7 +340,7 @@ void rc_output_parse_dig_sm(BaseSequentialStream * chp, int argc, char ** argv, 
   }
   if(error)
   {
-    chprintf(chp, "Usage:  config-set variable idx value[s]\r\n");
+    chprintf(chp, "Usage:  config-set variable idx value\r\n");
     chprintf(chp, "        idx=%d...%d to set single entries\r\n", RC_OUTPUT_DIG_OUT0, RC_OUTPUT_DIG_OUT11);
     chprintf(chp, "        idx=%d to set all entries\r\n", RC_OUTPUT_DIG_MAX);
     chprintf(chp, "        value=[PP|OD]\r\n");

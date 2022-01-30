@@ -26,5 +26,6 @@
 
 #define KR_RX_MAIN_THREAD_STACK 256
 #define KR_RX_MAIN_THREAD_PRIO  (NORMALPRIO - 2)
+#define KR_RX_LOOP_CMD_P_MS     10
 
 #endif /* INC_CFG_APP_KR_RX_CFG_H_ */

@@ -410,41 +410,27 @@ void rc_input_parse_dig_sm(BaseSequentialStream * chp, int argc, char ** argv, c
   }
   if(!error)
   {
-    switch(idx)
+    if(idx < RC_INPUT_DIG_MAX)
     {
-      case RC_INPUT_DIG_IN0:
-      case RC_INPUT_DIG_IN1:
-      case RC_INPUT_DIG_IN2:
-      case RC_INPUT_DIG_IN3:
-      case RC_INPUT_DIG_IN4:
-      case RC_INPUT_DIG_IN5:
-      case RC_INPUT_DIG_IN6:
-      case RC_INPUT_DIG_IN7:
-        error =  _rc_input_parse_dig_sm_str_to_line_mode(argv[2], digital_switch_mode);
-        break;
-      case RC_INPUT_DIG_MAX:
-        if(argc < 10)
-        {
-          error = 1;
-        }
-        else
-        {
-          uint8_t i = 0;
-          for(i=0; i<RC_INPUT_DIG_MAX; i++)
-          {
-            error =  _rc_input_parse_dig_sm_str_to_line_mode(argv[i+2], digital_switch_mode);
-            if(error) break;
-          }
-        }
-        break;
-      default:
-        error = 1;
-        break;
+      error =  _rc_input_parse_dig_sm_str_to_line_mode(argv[2], &digital_switch_mode[idx]);
+    }
+    else if(idx == RC_INPUT_DIG_MAX)
+    {
+      uint8_t i = 0;
+      for(i=0; i<RC_INPUT_DIG_MAX; i++)
+      {
+        error =  _rc_input_parse_dig_sm_str_to_line_mode(argv[2], &digital_switch_mode[i]);
+        if(error) break;
+      }
+    }
+    else
+    {
+      error = 1;
     }
   }
   if(error)
   {
-    chprintf(chp, "Usage:  config-set variable idx value[s]\r\n");
+    chprintf(chp, "Usage:  config-set variable idx value\r\n");
     chprintf(chp, "        idx=%d...%d to set single entries\r\n", RC_INPUT_DIG_IN0, RC_INPUT_DIG_IN7);
     chprintf(chp, "        idx=%d to set all entries\r\n", RC_INPUT_DIG_MAX);
     chprintf(chp, "        value=[PD|PU]\r\n");

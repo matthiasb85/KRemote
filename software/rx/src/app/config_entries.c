@@ -52,7 +52,18 @@ static config_entries_t _config_entries_config = {
       .version = CONFIG_ENTRIES_CONFIG_VERSION,
       .config_size = sizeof(config_entries_t),
     },
-    .kr_rx = 0,
+    .kr_rx = {
+      .channel_mapping = {
+          0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
+      },
+      .channel_failsafe = {
+          KR_CHANNEL_MAX_VALUE/2, KR_CHANNEL_MAX_VALUE/2, KR_CHANNEL_MAX_VALUE/2, KR_CHANNEL_MAX_VALUE/2,
+          KR_CHANNEL_MAX_VALUE/2, KR_CHANNEL_MAX_VALUE/2, KR_CHANNEL_MAX_VALUE/2, KR_CHANNEL_MAX_VALUE/2,
+          KR_CHANNEL_MAX_VALUE/2, KR_CHANNEL_MAX_VALUE/2, KR_CHANNEL_MAX_VALUE/2, KR_CHANNEL_MAX_VALUE/2,
+          KR_CHANNEL_MAX_VALUE/2, KR_CHANNEL_MAX_VALUE/2, KR_CHANNEL_MAX_VALUE/2, KR_CHANNEL_MAX_VALUE/2
+      },
+      .loop_cmd_period_ms = KR_RX_LOOP_CMD_P_MS
+    },
     .rc_output = {
         .digital_output_mode = {
             PAL_MODE_OUTPUT_OPENDRAIN, PAL_MODE_OUTPUT_OPENDRAIN , PAL_MODE_OUTPUT_OPENDRAIN ,PAL_MODE_OUTPUT_OPENDRAIN,
@@ -70,7 +81,9 @@ static config_entries_t _config_entries_config = {
 
 static const config_entry_mapping_t _config_entries_mapping[] = {
     { CONFIG_SECTION_DIVIDER("kr-tx config entries") },
-    { .name = "kr-rx",    .parse = CONFIG_PARSE_FUNC(uint32_t), .print = CONFIG_PRINT_FUNC(dec,uint32_t), .payload = &_config_entries_config.kr_rx, .help ="kr-rx value"},
+    { .name = "kr-rx-ch-map",   .parse = kr_rx_parse_array,           .print = kr_rx_print_array, .payload = &_config_entries_config.kr_rx, .help ="kr-rx value"},
+    { .name = "kr-rx-failsafe", .parse = kr_rx_parse_array,           .print = kr_rx_print_array, .payload = &_config_entries_config.kr_rx, .help ="kr-rx value"},
+    { .name = "kr-rx-loop-ms",  .parse = CONFIG_PARSE_FUNC(uint32_t), .print = CONFIG_PRINT_FUNC(dec,uint32_t), .payload = &_config_entries_config.kr_rx, .help ="kr-rx value"},
     { CONFIG_SECTION_DIVIDER("rc-output config entries") },
     { .name = "ro-dig-om",      .parse = rc_output_parse_dig_sm,      .print = rc_output_print_dig_sm,          .payload = &_config_entries_config.rc_output.digital_output_mode,   .help = "Digital output mode"},
     { .name = "ro-loop-ms",     .parse = CONFIG_PARSE_FUNC(uint32_t), .print = CONFIG_PRINT_FUNC(dec,uint32_t), .payload = &_config_entries_config.rc_output.loop_cmd_period_ms,    .help = "Period in ms for loop cmd"},

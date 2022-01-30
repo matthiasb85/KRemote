@@ -24,9 +24,11 @@
 #ifndef INC_TYPES_APP_KR_TYPES_H_
 #define INC_TYPES_APP_KR_TYPES_H_
 
+typedef uint16_t kr_ch_t;
+
 typedef struct
 {
-  uint16_t channels[KR_CHANNEL_NUMBER];
+  kr_ch_t channels[KR_CHANNEL_NUMBER];
 }kr_transmit_frame_t;
 
 #endif /* INC_TYPES_APP_KR_TYPES_H_ */

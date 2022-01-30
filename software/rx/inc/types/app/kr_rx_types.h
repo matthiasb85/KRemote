@@ -24,6 +24,13 @@
 #ifndef INC_TYPES_APP_KR_RX_TYPES_H_
 #define INC_TYPES_APP_KR_RX_TYPES_H_
 
+#include "api/app/kr.h"
 
+typedef struct
+{
+  uint8_t channel_mapping[KR_CHANNEL_NUMBER];
+  kr_ch_t channel_failsafe[KR_CHANNEL_NUMBER];
+  uint32_t loop_cmd_period_ms;
+}kr_rx_config_t;
 
 #endif /* INC_TYPES_APP_KR_RX_TYPES_H_ */

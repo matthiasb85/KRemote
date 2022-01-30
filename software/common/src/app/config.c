@@ -234,6 +234,23 @@ void config_export_sh(BaseSequentialStream *chp, int argc, char *argv[])
     entry++;
   }
 }
+
+void config_invalidate_sh(BaseSequentialStream *chp, int argc, char *argv[])
+{
+  (void)argv;
+  if (argc != 0)
+  {
+    chprintf(chp, "Usage:  config-invalidate\r\n");
+    return;
+  }
+  flash_storage_header_t * header = (flash_storage_header_t *)_config_control->config;
+  header->crc = 0xFFFFFFFF;
+
+  flash_storage_write_config(_config_control->config);
+
+  chprintf(chp, "Config invalidated and stored to flash.\r\n\r\n");
+  chprintf(chp, "Default config will be loaded after restart\r\n\r\n");
+}
 #endif
 
 /*

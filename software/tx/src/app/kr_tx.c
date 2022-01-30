@@ -41,6 +41,7 @@
 #include "api/app/kr.h"
 #include "api/app/cmd_shell.h"
 #include "api/app/config.h"
+#include "api/app/config_entries.h"
 #include "api/hal/flash_storage.h"
 #include "api/hal/nrf.h"
 #include "api/hal/usb.h"
@@ -78,7 +79,7 @@ static __attribute__((noreturn)) THD_FUNCTION(_kr_tx_main_thread, arg)
   (void)arg;
   systime_t time = 0;
   uint8_t i = 0;
-  uint8_t x = 0;
+  uint16_t x = 0;
   chRegSetThreadName("kr_tx_main_th");
 
   /*
@@ -89,10 +90,10 @@ static __attribute__((noreturn)) THD_FUNCTION(_kr_tx_main_thread, arg)
     time = chVTGetSystemTimeX();
     for(i=0; i < KR_CHANNEL_NUMBER; i++)
     {
-      _kr_tx_frame.channels[i] = x++;
+      _kr_tx_frame.channels[i] = (KR_CHANNEL_MAX_VALUE/2);
     }
     nrf_send_payload(&_kr_tx_frame, sizeof(_kr_tx_frame));
-    chThdSleepUntilWindowed(time, time + TIME_MS2I(1000));
+    chThdSleepUntilWindowed(time, time + TIME_MS2I(10));
   }
 }
 

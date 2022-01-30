@@ -29,7 +29,7 @@
  * Global definition of shell commands
  * for module kr_rx
  */
-//extern void kr_rx_foo_sh(BaseSequentialStream *chp, int argc, char *argv[]);
+extern void kr_rx_loop_channels_sh(BaseSequentialStream *chp, int argc, char *argv[]);
 
 /*
  * Shell command list
@@ -37,7 +37,7 @@
  */
 // clang-format off
 #define KR_RX_CMD_LIST \
-            /*{"kr-rx-foo, kr_rx_foo_sh},*/
+            {"kr-rx-loop-channels", kr_rx_loop_channels_sh},
 
 // clang-format on
 #endif

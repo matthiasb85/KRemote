@@ -28,10 +28,13 @@
 #include "types/hal/nrf_types.h"
 #include "api/app/config.h"
 
+extern event_source_t nrf_rx_event;
+
 extern void nrf_init(void);
 extern void nrf_receive_payload(void * dest, uint8_t size);
 extern uint8_t nrf_send_payload(void * src, uint8_t size);
 extern nrf_connection_state_t nrf_get_connection_state(void);
+extern void nrf_register_connection_state_change_callback(void(*cb)(nrf_connection_state_t));
 extern void nrf_parse_config(BaseSequentialStream * chp, int argc, char ** argv, config_entry_mapping_t * entry);
 extern void nrf_print_config(BaseSequentialStream * chp, config_entry_mapping_t * entry);
 extern void nrf_parse_config_ad(BaseSequentialStream * chp, int argc, char ** argv, config_entry_mapping_t * entry);

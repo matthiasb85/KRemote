@@ -124,6 +124,7 @@ typedef struct
   uint8_t address[NRF_MAX_ADDR_LENGTH];
   uint32_t event_thread_prio;
   uint16_t rx_timeout;
+  uint32_t boot_timeout;
 }nrf_config_t;
 
 typedef struct
@@ -194,7 +195,8 @@ typedef struct
     .address_width = NRF_DEFAULT_AW, \
     .address = NRF_DEFAULT_AD, \
     .event_thread_prio = NRF_EVENT_THREAD_PRIO, \
-    .rx_timeout = NRF_DEFAULT_RXT
+    .rx_timeout = NRF_DEFAULT_RXT , \
+    .boot_timeout = 0
 
 #define NRF_CONFIG_MAP_ENTRIES \
     { .name = "nrf-mode", .parse = nrf_parse_config, .print = nrf_print_config,  .payload = &_config_entries_config.nrf.mode, .help ="nrf operation mode"}, \
@@ -203,7 +205,8 @@ typedef struct
     { .name = "nrf-aw",   .parse = nrf_parse_config, .print = nrf_print_config,  .payload = &_config_entries_config.nrf.address_width, .help ="nrf address width"}, \
     { .name = "nrf-ch",   .parse = CONFIG_PARSE_FUNC(uint8_t), .print = CONFIG_PRINT_FUNC(dec,uint8_t), .payload = &_config_entries_config.nrf.channel, .help ="nrf channel"}, \
     { .name = "nrf-rxt",  .parse = CONFIG_PARSE_FUNC(uint16_t), .print = CONFIG_PRINT_FUNC(dec,uint16_t), .payload = &_config_entries_config.nrf.rx_timeout,    .help ="nrf RX timeout *10ms"}, \
-    { .name = "nrf-ad",   .parse = nrf_parse_config_ad,         .print = nrf_print_config_ad,             .payload = &_config_entries_config.nrf.address,       .help ="nrf address"}
+    { .name = "nrf-ad",   .parse = nrf_parse_config_ad,         .print = nrf_print_config_ad,             .payload = &_config_entries_config.nrf.address,       .help ="nrf address"}, \
+    { .name = "nrf-bt",   .parse = CONFIG_PARSE_FUNC(uint32_t), .print = CONFIG_PRINT_FUNC(dec,uint32_t), .payload = &_config_entries_config.nrf.boot_timeout,  .help ="nrf boot timeout"}
 
 
 #endif /* COMMON_INC_TYPES_HAL_NRF_TYPES_H_ */

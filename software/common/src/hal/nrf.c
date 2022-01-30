@@ -75,6 +75,7 @@ static uint8_t _nrf_payload[NRF_MAX_PACKAGE_LENGTH];
 static nrf_connection_state_t _nrf_connection_state = NRF_CONNECTION_LOST;
 static nrf_connection_state_t _nrf_rx_timeout = NRF_CONNECTION_LOST;
 static virtual_timer_t _nrf_rx_timeout_vtp;
+static void(*_nrf_connection_state_cb)(nrf_connection_state_t) = NULL;
 static const SPIConfig _nrf_spi_cfg = {
   false,                        /* no circular mode */
   NULL,                         /* no finish cb     */
@@ -343,6 +344,10 @@ static void _nrf_set_connection_state(nrf_connection_state_t state)
       palSetLine(NRF_STATE_LED);
       break;
   }
+  if(_nrf_connection_state_cb)
+  {
+    _nrf_connection_state_cb(state);
+  }
 }
 
 static uint8_t _nrf_config_get_mapping_table(config_entry_mapping_t * entry, nrf_config_mode_map_t ** map)
@@ -447,6 +452,7 @@ void nrf_foo_sh(BaseSequentialStream *chp, int argc, char *argv[])
 void nrf_init(void)
 {
   _nrf_config = (nrf_config_t *)config_get_module_config(CONFIG_ENTRY_NRF);
+  chThdSleep(TIME_MS2I(_nrf_config->boot_timeout));
   _nrf_init_hal();
   _nrf_init_module();
 }
@@ -479,6 +485,13 @@ nrf_connection_state_t nrf_get_connection_state(void)
   nrf_connection_state_t ret = _nrf_connection_state;
   chSysUnlock();
   return ret;
+}
+
+void nrf_register_connection_state_change_callback(void(*cb)(nrf_connection_state_t))
+{
+  chSysLock();
+  _nrf_connection_state_cb = cb;
+  chSysUnlock();
 }
 
 void nrf_parse_config(BaseSequentialStream * chp, int argc, char ** argv, config_entry_mapping_t * entry)
