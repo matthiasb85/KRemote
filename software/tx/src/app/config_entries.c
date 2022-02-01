@@ -107,7 +107,9 @@ static config_entries_t _config_entries_config = {
 
 static const config_entry_mapping_t _config_entries_mapping[] = {
     { CONFIG_SECTION_DIVIDER("kr-tx config entries") },
-    { .name = "kr-tx",    .parse = CONFIG_PARSE_FUNC(uint32_t), .print = CONFIG_PRINT_FUNC(dec,uint32_t), .payload = &_config_entries_config.kr_tx, .help ="kr-tx value"},
+    { .name = "kr-tx-trim",      .parse = kr_tx_parse_array, .print = kr_tx_print_array, .payload = &_config_entries_config.kr_tx.trim, .help ="kr-tx trim values"},
+    { .name = "kr-tx-input-min", .parse = kr_tx_parse_array, .print = kr_tx_print_array, .payload = &_config_entries_config.kr_tx.input_min, .help ="kr-tx input min values"},
+    { .name = "kr-tx-input-min", .parse = kr_tx_parse_array, .print = kr_tx_print_array, .payload = &_config_entries_config.kr_tx.input_max, .help ="kr-tx input max values"},
     { CONFIG_SECTION_DIVIDER("rc-input config entries") },
     { .name = "ri-dig-sm",      .parse = rc_input_parse_dig_sm,       .print = rc_input_print_dig_sm,           .payload = &_config_entries_config.rc_input.digital_switch_mode,         .help = "Digital switch mode"},
     { .name = "ri-poll-p",      .parse = CONFIG_PARSE_FUNC(uint32_t), .print = CONFIG_PRINT_FUNC(dec,uint32_t), .payload = &_config_entries_config.rc_input.poll_thread_prio,            .help = "Poll thread priority"},

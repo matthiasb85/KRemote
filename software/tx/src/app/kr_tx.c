@@ -272,3 +272,23 @@ void kr_tx_init(void)
    * something went horribly wrong
    */
 }
+
+void kr_tx_parse_array(BaseSequentialStream * chp, int argc, char ** argv, config_entry_mapping_t * entry)
+{
+  if(strcmp(entry->name, "kr-tx-trim") == 0)
+    config_parse_array(chp, argc, argv, entry, CONFIG_INT16, KR_CHANNEL_NUMBER);
+  else if(strcmp(entry->name, "kr-tx-input-min") == 0)
+    config_parse_array(chp, argc, argv, entry, CONFIG_UINT16, KR_CHANNEL_NUMBER);
+  else if(strcmp(entry->name, "kr-tx-input-max") == 0)
+    config_parse_array(chp, argc, argv, entry, CONFIG_UINT16, KR_CHANNEL_NUMBER);
+}
+
+void kr_tx_print_array(BaseSequentialStream * chp, config_entry_mapping_t * entry)
+{
+  if(strcmp(entry->name, "kr-tx-trim") == 0)
+    config_print_array(chp, entry, CONFIG_INT16, KR_CHANNEL_NUMBER, CONFIG_DEC);
+  else if(strcmp(entry->name, "kr-tx-input-min") == 0)
+    config_print_array(chp, entry, CONFIG_UINT16, KR_CHANNEL_NUMBER, CONFIG_DEC);
+  else if(strcmp(entry->name, "kr-tx-input-max") == 0)
+    config_print_array(chp, entry, CONFIG_UINT16, KR_CHANNEL_NUMBER, CONFIG_DEC);
+}
