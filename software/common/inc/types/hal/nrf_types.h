@@ -127,12 +127,6 @@ typedef struct
   uint32_t boot_timeout;
 }nrf_config_t;
 
-typedef struct
-{
-  const char *const name;
-  uint32_t mode;
-}nrf_config_mode_map_t;
-
 #define NRF_PIN_WAIT(X)     { \
                               uint16_t i = 0; \
                               for(i=0; i < (X); i++) \

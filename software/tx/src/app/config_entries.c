@@ -52,14 +52,47 @@ static config_entries_t _config_entries_config = {
       .version = CONFIG_ENTRIES_CONFIG_VERSION,
       .config_size = sizeof(config_entries_t),
     },
-    .kr_tx = 0,
+    .kr_tx = {
+        .trim = {
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+        },
+        .input_min = {
+            0, 0, 0, 0, 0, 0, 0, 0,
+            0, 0, 0, 0, 0, 0, 0, 0,
+        },
+        .input_max = {
+            RC_INPUT_AN_MAX_VALUE, RC_INPUT_AN_MAX_VALUE, RC_INPUT_AN_MAX_VALUE, RC_INPUT_AN_MAX_VALUE,
+            RC_INPUT_AN_MAX_VALUE, RC_INPUT_AN_MAX_VALUE, RC_INPUT_AN_MAX_VALUE, RC_INPUT_AN_MAX_VALUE,
+            RC_INPUT_AN_MAX_VALUE, RC_INPUT_AN_MAX_VALUE, RC_INPUT_AN_MAX_VALUE, RC_INPUT_AN_MAX_VALUE,
+            RC_INPUT_AN_MAX_VALUE, RC_INPUT_AN_MAX_VALUE, RC_INPUT_AN_MAX_VALUE, RC_INPUT_AN_MAX_VALUE
+        },
+        .mapping = {
+            { .type = KR_TX_MAP_ANALOG,   .channel = 0, .inverted = KR_TX_INV_FALSE, .output_min = 0, .output_max = KR_CHANNEL_MAX_VALUE, .condition = KR_TX_COND_NONE, .threshold = 0 },
+            { .type = KR_TX_MAP_ANALOG,   .channel = 1, .inverted = KR_TX_INV_FALSE, .output_min = 0, .output_max = KR_CHANNEL_MAX_VALUE, .condition = KR_TX_COND_NONE, .threshold = 0 },
+            { .type = KR_TX_MAP_DISABLED, .channel = 0, .inverted = KR_TX_INV_FALSE, .output_min = 0, .output_max = KR_CHANNEL_MAX_VALUE, .condition = KR_TX_COND_NONE, .threshold = 0 },
+            { .type = KR_TX_MAP_DISABLED, .channel = 0, .inverted = KR_TX_INV_FALSE, .output_min = 0, .output_max = KR_CHANNEL_MAX_VALUE, .condition = KR_TX_COND_NONE, .threshold = 0 },
+            { .type = KR_TX_MAP_DIGITAL,  .channel = 1, .inverted = KR_TX_INV_FALSE, .output_min = 0, .output_max = KR_CHANNEL_MAX_VALUE, .condition = KR_TX_COND_LE,   .threshold = 1900 },
+            { .type = KR_TX_MAP_DIGITAL,  .channel = 8, .inverted = KR_TX_INV_FALSE, .output_min = 0, .output_max = KR_CHANNEL_MAX_VALUE, .condition = KR_TX_COND_GE,   .threshold = 1024 },
+            { .type = KR_TX_MAP_DISABLED, .channel = 0, .inverted = KR_TX_INV_FALSE, .output_min = 0, .output_max = KR_CHANNEL_MAX_VALUE, .condition = KR_TX_COND_NONE, .threshold = 0 },
+            { .type = KR_TX_MAP_DISABLED, .channel = 0, .inverted = KR_TX_INV_FALSE, .output_min = 0, .output_max = KR_CHANNEL_MAX_VALUE, .condition = KR_TX_COND_NONE, .threshold = 0 },
+            { .type = KR_TX_MAP_DISABLED, .channel = 0, .inverted = KR_TX_INV_FALSE, .output_min = 0, .output_max = KR_CHANNEL_MAX_VALUE, .condition = KR_TX_COND_NONE, .threshold = 0 },
+            { .type = KR_TX_MAP_DISABLED, .channel = 0, .inverted = KR_TX_INV_FALSE, .output_min = 0, .output_max = KR_CHANNEL_MAX_VALUE, .condition = KR_TX_COND_NONE, .threshold = 0 },
+            { .type = KR_TX_MAP_DISABLED, .channel = 0, .inverted = KR_TX_INV_FALSE, .output_min = 0, .output_max = KR_CHANNEL_MAX_VALUE, .condition = KR_TX_COND_NONE, .threshold = 0 },
+            { .type = KR_TX_MAP_DISABLED, .channel = 0, .inverted = KR_TX_INV_FALSE, .output_min = 0, .output_max = KR_CHANNEL_MAX_VALUE, .condition = KR_TX_COND_NONE, .threshold = 0 },
+            { .type = KR_TX_MAP_DISABLED, .channel = 0, .inverted = KR_TX_INV_FALSE, .output_min = 0, .output_max = KR_CHANNEL_MAX_VALUE, .condition = KR_TX_COND_NONE, .threshold = 0 },
+            { .type = KR_TX_MAP_DISABLED, .channel = 0, .inverted = KR_TX_INV_FALSE, .output_min = 0, .output_max = KR_CHANNEL_MAX_VALUE, .condition = KR_TX_COND_NONE, .threshold = 0 },
+            { .type = KR_TX_MAP_DISABLED, .channel = 0, .inverted = KR_TX_INV_FALSE, .output_min = 0, .output_max = KR_CHANNEL_MAX_VALUE, .condition = KR_TX_COND_NONE, .threshold = 0 },
+            { .type = KR_TX_MAP_DISABLED, .channel = 0, .inverted = KR_TX_INV_FALSE, .output_min = 0, .output_max = KR_CHANNEL_MAX_VALUE, .condition = KR_TX_COND_NONE, .threshold = 0 },
+        },
+    },
     .rc_input = {
         .digital_switch_mode = {
             PAL_MODE_INPUT_PULLDOWN, PAL_MODE_INPUT_PULLDOWN , PAL_MODE_INPUT_PULLDOWN ,PAL_MODE_INPUT_PULLDOWN,
             PAL_MODE_INPUT_PULLDOWN, PAL_MODE_INPUT_PULLDOWN , PAL_MODE_INPUT_PULLDOWN ,PAL_MODE_INPUT_PULLDOWN
         },
         .analog_conversion_period_ms = 10,
-        .analog_conversion_emph_old = 20,
+        .analog_conversion_emph_old = 5,
         .analog_conversion_emph_new = 1,
         .poll_thread_prio = RC_INPUT_POLL_THREAD_STACK,
         .poll_thread_period_ms = RC_INPUT_POLL_MAIN_THREAD_P_MS,

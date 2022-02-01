@@ -94,12 +94,6 @@ typedef struct
   uint32_t loop_cmd_period_ms;
 }rc_output_config_t;
 
-typedef struct
-{
-  const char *const name;
-  uint32_t mode;
-}rc_output_config_output_mode_map_t;
-
 #define RC_OUTPUT_PWM_MS_TO_TICKS(x)  ((RC_OUTPUT_PWM_TIMER_FREQ/1000)*(x))
 #define RC_OUTPUT_PWM_PERIOD_TICKS    RC_OUTPUT_PWM_MS_TO_TICKS(RC_OUTPUT_PWM_P_MS)
 #define RC_OUTPUT_PWM_MIN_DUTY_TICKS  RC_OUTPUT_PWM_MS_TO_TICKS(RC_OUTPUT_PWM_MIN_DUTY_MS)

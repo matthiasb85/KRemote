@@ -124,10 +124,4 @@ typedef struct
   uint32_t loop_cmd_period_ms;
 }rc_input_config_t;
 
-typedef struct
-{
-  const char *const name;
-  uint32_t mode;
-}rc_input_config_switch_mode_map_t;
-
 #endif /* INC_TYPES_HAL_RC_INPUT_TYPES_H_ */

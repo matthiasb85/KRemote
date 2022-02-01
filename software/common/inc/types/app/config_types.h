@@ -27,6 +27,30 @@
 #include "ch.h"
 #include "hal.h"
 
+typedef enum
+{
+  CONFIG_UINT8 = 0,
+  CONFIG_UINT16,
+  CONFIG_UINT32,
+  CONFIG_UINT64,
+  CONFIG_INT8,
+  CONFIG_INT16,
+  CONFIG_INT32,
+  CONFIG_INT64,
+}config_value_type_t;
+
+typedef enum
+{
+  CONFIG_DEC = 0,
+  CONFIG_HEX
+}config_print_type_t;
+
+typedef struct
+{
+  const char *const name;
+  uint32_t mode;
+}config_mode_map_t;
+
 typedef struct _config_entry_mapping_t
 {
   const char *const name;

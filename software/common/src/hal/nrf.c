@@ -57,9 +57,7 @@ static uint8_t _nrf_init_transceiver(void);
 static void _nrf_flush_rx_tx_buffers(void);
 static uint8_t _nrf_execute_command(nrf_commands_t cmd, uint8_t * tx_buf, uint8_t * rx_buf, uint8_t size);
 static void _nrf_set_connection_state(nrf_connection_state_t state);
-static uint8_t _nrf_config_get_mapping_table(config_entry_mapping_t * entry, nrf_config_mode_map_t ** map);
-static uint8_t _nrf_parse_str_to_value(char * str, uint32_t * dest, nrf_config_mode_map_t * map, uint8_t map_len);
-static  char * _nrf_parse_value_to_str(uint32_t value, nrf_config_mode_map_t * map, uint8_t map_len);
+static uint8_t _nrf_config_get_mapping_table(config_entry_mapping_t * entry, config_mode_map_t ** map);
 static void _nrf_irq_line_cb(void *arg);
 static void _nrf_rx_timeout_cb(void *arg);
 
@@ -83,21 +81,21 @@ static const SPIConfig _nrf_spi_cfg = {
   SPI_CR1_BR_1,                 /* mode 0, ~5-6MHz  */
   0
 };
-static nrf_config_mode_map_t _nrf_config_opmode_map[] = {
+static const config_mode_map_t _nrf_config_opmode_map[] = {
     {"RX", NRF_MODE_RX},
     {"TX", NRF_MODE_TX},
 };
-static nrf_config_mode_map_t _nrf_config_palevel_map[] = {
+static const config_mode_map_t _nrf_config_palevel_map[] = {
     {"MIN",  NRF_PA_MIN},
     {"LOW",  NRF_PA_LOW},
     {"HIGH", NRF_PA_HIGH},
 };
-static nrf_config_mode_map_t _nrf_config_datarate_map[] = {
+static const config_mode_map_t _nrf_config_datarate_map[] = {
     {"1MBPS",   NRF_1MBPS},
     {"2MBPS",   NRF_2MBPS},
     {"250KBPS", NRF_250KBPS},
 };
-static nrf_config_mode_map_t _nrf_config_addresswidth_map[] = {
+static const config_mode_map_t _nrf_config_addresswidth_map[] = {
     {"3", NRF_AW_3BYTE},
     {"4", NRF_AW_4BYTE},
     {"5", NRF_AW_5BYTE},
@@ -350,42 +348,15 @@ static void _nrf_set_connection_state(nrf_connection_state_t state)
   }
 }
 
-static uint8_t _nrf_config_get_mapping_table(config_entry_mapping_t * entry, nrf_config_mode_map_t ** map)
+static uint8_t _nrf_config_get_mapping_table(config_entry_mapping_t * entry, config_mode_map_t ** map)
 {
   uint8_t map_len = 0;
-  if(strcmp(entry->name, "nrf-mode") == 0)    { *map = _nrf_config_opmode_map; map_len = sizeof(_nrf_config_opmode_map); }
-  else if(strcmp(entry->name, "nrf-pa") == 0) { *map = _nrf_config_palevel_map; map_len = sizeof(_nrf_config_palevel_map); }
-  else if(strcmp(entry->name, "nrf-dr") == 0) { *map = _nrf_config_datarate_map; map_len = sizeof(_nrf_config_datarate_map); }
-  else if(strcmp(entry->name, "nrf-aw") == 0) { *map = _nrf_config_addresswidth_map; map_len = sizeof(_nrf_config_addresswidth_map); }
+  if(strcmp(entry->name, "nrf-mode") == 0)    { *map = (config_mode_map_t *)_nrf_config_opmode_map; map_len = sizeof(_nrf_config_opmode_map); }
+  else if(strcmp(entry->name, "nrf-pa") == 0) { *map = (config_mode_map_t *)_nrf_config_palevel_map; map_len = sizeof(_nrf_config_palevel_map); }
+  else if(strcmp(entry->name, "nrf-dr") == 0) { *map = (config_mode_map_t *)_nrf_config_datarate_map; map_len = sizeof(_nrf_config_datarate_map); }
+  else if(strcmp(entry->name, "nrf-aw") == 0) { *map = (config_mode_map_t *)_nrf_config_addresswidth_map; map_len = sizeof(_nrf_config_addresswidth_map); }
   else return 0;
-  return map_len/sizeof(nrf_config_mode_map_t);
-}
-
-static uint8_t _nrf_parse_str_to_value(char * str, uint32_t * dest, nrf_config_mode_map_t * map, uint8_t map_len)
-{
-  uint8_t i = 0;
-  for(i=0; i < map_len; i++)
-  {
-    if(strcmp(str, (char *)map[i].name)==0)
-    {
-      *dest = map[i].mode;
-      return 0;
-    }
-  }
-  return 3;
-}
-
-static  char * _nrf_parse_value_to_str(uint32_t value, nrf_config_mode_map_t * map, uint8_t map_len)
-{
-  uint8_t i = 0;
-  for(i=0; i < map_len; i++)
-  {
-    if(value == map[i].mode)
-    {
-      return (char *)map[i].name;
-    }
-  }
-  return NULL;
+  return map_len/sizeof(config_mode_map_t);
 }
 
 /*
@@ -499,7 +470,7 @@ void nrf_parse_config(BaseSequentialStream * chp, int argc, char ** argv, config
   uint32_t * value = entry->payload;
   uint8_t map_len = 0;
   uint8_t error = 0;
-  nrf_config_mode_map_t * map = NULL;
+  config_mode_map_t * map = NULL;
   if(argc < 2)
   {
     error = 1;
@@ -507,8 +478,17 @@ void nrf_parse_config(BaseSequentialStream * chp, int argc, char ** argv, config
   if(!error)
   {
     map_len = _nrf_config_get_mapping_table(entry, &map);
-    if(map_len) error =  _nrf_parse_str_to_value(argv[1], value, map, map_len);
-    else error = 2;
+    if(map_len)
+    {
+      if(!config_map_str_to_value(argv[1], value, map, map_len))
+      {
+        error =  3;
+      }
+    }
+    else
+    {
+      error = 2;
+    }
   }
   if(error)
   {
@@ -521,11 +501,13 @@ void nrf_parse_config(BaseSequentialStream * chp, int argc, char ** argv, config
 
 void nrf_print_config(BaseSequentialStream * chp, config_entry_mapping_t * entry)
 {
-  nrf_config_mode_map_t * map = NULL;
+  config_mode_map_t * map = NULL;
   uint8_t map_len = _nrf_config_get_mapping_table(entry, &map);
   uint8_t * value = entry->payload;
+  char *str = NULL;
+  config_map_value_to_str(*value, &str, map, map_len);
   chprintf(chp, "  %-20s",entry->name);
-  chprintf(chp, " %16s", _nrf_parse_value_to_str(*value, map, map_len));
+  chprintf(chp, " %16s", str);
 
 }
 

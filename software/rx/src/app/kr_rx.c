@@ -249,74 +249,16 @@ void kr_rx_init(void)
 
 void kr_rx_parse_array(BaseSequentialStream * chp, int argc, char ** argv, config_entry_mapping_t * entry)
 {
-
-  uint8_t error = 0;
-  uint8_t bs = 0;
-
-  if(argc < 3)
-  {
-    error = 1;
-  }
-  uint32_t idx = (uint16_t)strtol(argv[1], NULL, 0);
-
-  if(!error)
-  {
-    bs = (strcmp(entry->name, "kr-rx-ch-map") == 0) ? 1 : 2;
-    uint32_t value = (uint32_t)strtol(argv[2], NULL, 0);
-
-    if(idx < KR_CHANNEL_NUMBER)
-    {
-      if(bs == 1)
-      {
-        uint8_t *ch_map = (uint8_t *)entry->payload;
-        ch_map[idx] = (uint8_t)value;
-      }
-      else
-      {
-        uint16_t *failsafe_values = (uint16_t *)entry->payload;
-        failsafe_values[idx] = value;
-      }
-    }
-    else if(idx == KR_CHANNEL_NUMBER)
-    {
-      uint8_t i = 0;
-      for(i=0; i<KR_CHANNEL_NUMBER; i++)
-      {
-        if(bs == 1)
-        {
-          uint8_t *ch_map = (uint8_t *)entry->payload;
-          ch_map[i] = (uint8_t)value;
-        }
-        else
-        {
-          uint16_t *failsafe_values = (uint16_t *)entry->payload;
-          failsafe_values[i] = value;
-        }
-      }
-    }
-    else
-    {
-      error = 1;
-    }
-  }
-  if(error)
-  {
-    chprintf(chp, "Usage:  config-set variable idx value\r\n");
-    chprintf(chp, "        idx=%d...%d to set single entries\r\n", 0, KR_CHANNEL_NUMBER - 1);
-    chprintf(chp, "        idx=%d to set all entries\r\n", KR_CHANNEL_NUMBER);
-    chprintf(chp, "        value=[0...%d]\r\n", KR_CHANNEL_MAX_VALUE);
-  }
+  if(strcmp(entry->name, "kr-rx-ch-map") == 0)
+    config_parse_array(chp, argc, argv, entry, CONFIG_UINT8, KR_CHANNEL_NUMBER);
+  else if(strcmp(entry->name, "kr-rx-failsafe") == 0)
+    config_parse_array(chp, argc, argv, entry, CONFIG_UINT16, KR_CHANNEL_NUMBER);
 }
 
 void kr_rx_print_array(BaseSequentialStream * chp, config_entry_mapping_t * entry)
 {
-  uint8_t i = 0;
-  uint8_t bs = (strcmp(entry->name, "kr-rx-ch-map") == 0) ? 1 : 2;
-  chprintf(chp, "  %-20s",entry->name);
-  for(i=0; i<KR_CHANNEL_NUMBER; i++)
-  {
-      chprintf(chp, " %4d", (bs == 1) ?
-          ((uint8_t *)entry->payload)[i] :
-          ((uint16_t *)entry->payload)[i]);
-  }
+  if(strcmp(entry->name, "kr-rx-ch-map") == 0)
+    config_print_array(chp, entry, CONFIG_UINT8, KR_CHANNEL_NUMBER, CONFIG_DEC);
+  else if(strcmp(entry->name, "kr-rx-failsafe") == 0)
+    config_print_array(chp, entry, CONFIG_UINT16, KR_CHANNEL_NUMBER, CONFIG_DEC);
 }

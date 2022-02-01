@@ -55,13 +55,11 @@ static_assert(RC_INPUT_MAX == (RC_INPUT_AN_MAX + RC_INPUT_DIG_MAX),
  */
 static void _rc_input_init_hal(void);
 static void _rc_input_init_module(void);
-static void _rc_input_get_dig_state(rc_input_ch_t ch, rc_input_state_digital_t state);
+static void _rc_input_set_dig_state(rc_input_ch_t ch, rc_input_state_digital_t state);
 static void _rc_input_an_start_measurement (void);
 static uint16_t _rc_input_get_an_state(rc_input_ch_an_t line, uint16_t old_value);
 static void _rc_input_an_start_measurement_cb(void *arg);
 static void _rc_input_an_finish_measurement_cb(ADCDriver *adcp);
-static uint8_t _rc_input_parse_dig_sm_str_to_line_mode(char * str, uint32_t * dest);
-static  char * _rc_input_parse_dig_sm_line_mode_to_str(uint32_t line_mode);
 
 /*
  * Static variables
@@ -71,7 +69,7 @@ static virtual_timer_t _rc_input_adc_start_measurement_vtp;
 static adcsample_t _rc_input_an_samples[RC_INPUT_AN_MAX];
 
 static rc_input_config_t * _rc_input_config = NULL;
-static const rc_input_config_switch_mode_map_t _rc_input_config_switch_mode_map[] = {
+static const config_mode_map_t _rc_input_config_switch_mode_map[] = {
     { "PU", PAL_MODE_INPUT_PULLUP },
     { "PD", PAL_MODE_INPUT_PULLDOWN }
 };
@@ -186,7 +184,7 @@ static __attribute__((noreturn)) THD_FUNCTION(_rc_input_poll_thread, arg)
             {
               _rc_input_dig_sw_list[sw_id].delay = RC_INPUT_DIG_DEBOUNCE_TIME_TICKS;
               _rc_input_dig_sw_list[sw_id].state = RC_INPUT_SW_STATE_PRESS;
-              _rc_input_get_dig_state(_rc_input_dig_sw_list[sw_id].ch, RC_INPUT_DIG_SW_ON);
+              _rc_input_set_dig_state(_rc_input_dig_sw_list[sw_id].ch, RC_INPUT_DIG_SW_ON);
             }
             break;
           case RC_INPUT_SW_STATE_PRESS:
@@ -199,13 +197,13 @@ static __attribute__((noreturn)) THD_FUNCTION(_rc_input_poll_thread, arg)
             {
               _rc_input_dig_sw_list[sw_id].delay = RC_INPUT_DIG_DEBOUNCE_TIME_TICKS;
               _rc_input_dig_sw_list[sw_id].state = RC_INPUT_SW_STATE_INIT;
-              _rc_input_get_dig_state(_rc_input_dig_sw_list[sw_id].ch, RC_INPUT_DIG_SW_OFF);
+              _rc_input_set_dig_state(_rc_input_dig_sw_list[sw_id].ch, RC_INPUT_DIG_SW_OFF);
             }
             break;
           default:
             _rc_input_dig_sw_list[sw_id].delay = 0;
             _rc_input_dig_sw_list[sw_id].state = RC_INPUT_SW_STATE_INIT;
-            _rc_input_get_dig_state(_rc_input_dig_sw_list[sw_id].ch, RC_INPUT_DIG_SW_OFF);
+            _rc_input_set_dig_state(_rc_input_dig_sw_list[sw_id].ch, RC_INPUT_DIG_SW_OFF);
             break;
         }
       }
@@ -259,7 +257,7 @@ static void _rc_input_init_module(void)
   _rc_input_an_start_measurement();
 }
 
-static void _rc_input_get_dig_state(rc_input_ch_t ch, rc_input_state_digital_t state)
+static void _rc_input_set_dig_state(rc_input_ch_t ch, rc_input_state_digital_t state)
 {
   /*
    * Use critical section to provide
@@ -284,35 +282,6 @@ static uint16_t _rc_input_get_an_state(rc_input_ch_an_t line, uint16_t old_value
 {
   return (_rc_input_an_samples[line]*_rc_input_config->analog_conversion_emph_new + old_value*_rc_input_config->analog_conversion_emph_old)
       /(_rc_input_config->analog_conversion_emph_new + _rc_input_config->analog_conversion_emph_old);
-}
-
-static uint8_t _rc_input_parse_dig_sm_str_to_line_mode(char * str, uint32_t * dest)
-{
-  uint8_t i = 0;
-  uint8_t map_len = sizeof(_rc_input_config_switch_mode_map) / sizeof(rc_input_config_switch_mode_map_t);
-  for(i=0; i < map_len; i++)
-  {
-    if(strcmp(str, (char *)_rc_input_config_switch_mode_map[i].name)==0)
-    {
-      *dest = _rc_input_config_switch_mode_map[i].mode;
-      return 0;
-    }
-  }
-  return 1;
-}
-
-static  char * _rc_input_parse_dig_sm_line_mode_to_str(uint32_t line_mode)
-{
-  uint8_t i = 0;
-  uint8_t map_len = sizeof(_rc_input_config_switch_mode_map) / sizeof(rc_input_config_switch_mode_map_t);
-  for(i=0; i < map_len; i++)
-  {
-    if(line_mode == _rc_input_config_switch_mode_map[i].mode)
-    {
-      return (char *)_rc_input_config_switch_mode_map[i].name;
-    }
-  }
-  return NULL;
 }
 
 /*
@@ -404,36 +373,60 @@ void rc_input_parse_dig_sm(BaseSequentialStream * chp, int argc, char ** argv, c
   uint32_t * digital_switch_mode = entry->payload;
   uint32_t idx = (uint16_t)strtol(argv[1], NULL, 0);
   uint8_t error = 0;
-  if(argc < 3)
+  if(argc != 3 && argc != RC_INPUT_DIG_MAX+1)
   {
     error = 1;
   }
   if(!error)
   {
-    if(idx < RC_INPUT_DIG_MAX)
+    if(argc == 3)
     {
-      error =  _rc_input_parse_dig_sm_str_to_line_mode(argv[2], &digital_switch_mode[idx]);
-    }
-    else if(idx == RC_INPUT_DIG_MAX)
-    {
-      uint8_t i = 0;
-      for(i=0; i<RC_INPUT_DIG_MAX; i++)
+      if(idx < RC_INPUT_DIG_MAX)
       {
-        error =  _rc_input_parse_dig_sm_str_to_line_mode(argv[2], &digital_switch_mode[i]);
-        if(error) break;
+        if(!config_map_str_to_value(argv[1], &digital_switch_mode[idx], _rc_input_config_switch_mode_map,
+            sizeof(_rc_input_config_switch_mode_map)/sizeof(config_mode_map_t)))
+        {
+          error =  3;
+        }
+      }
+      else if(idx == RC_INPUT_DIG_MAX)
+      {
+        uint8_t i = 0;
+        for(i=0; i<RC_INPUT_DIG_MAX; i++)
+        {
+          if(!config_map_str_to_value(argv[1], &digital_switch_mode[i], _rc_input_config_switch_mode_map,
+              sizeof(_rc_input_config_switch_mode_map)/sizeof(config_mode_map_t)))
+          {
+            error =  3;
+          }
+          if(error) break;
+        }
+      }
+      else
+      {
+        error = 1;
       }
     }
     else
     {
-      error = 1;
+      uint8_t i = 0;
+      for(i=0; i<RC_INPUT_DIG_MAX; i++)
+      {
+        if(!config_map_str_to_value(argv[i+1], &digital_switch_mode[i], _rc_input_config_switch_mode_map,
+            sizeof(_rc_input_config_switch_mode_map)/sizeof(config_mode_map_t)))
+        {
+          error =  3;
+        }
+        if(error) break;
+      }
     }
   }
   if(error)
   {
-    chprintf(chp, "Usage:  config-set variable idx value\r\n");
-    chprintf(chp, "        idx=%d...%d to set single entries\r\n", RC_INPUT_DIG_IN0, RC_INPUT_DIG_IN7);
-    chprintf(chp, "        idx=%d to set all entries\r\n", RC_INPUT_DIG_MAX);
-    chprintf(chp, "        value=[PD|PU]\r\n");
+    chprintf(chp, "Input does not match, use: [0..%d] value            (set single value)\r\n", RC_INPUT_DIG_IN7);
+    chprintf(chp, "                           [%d] value               (set all values)\r\n", RC_INPUT_DIG_MAX);
+    chprintf(chp, "                           value0 value1 ...value%d (set all value individual)\r\n", RC_INPUT_DIG_MAX-1);
+    chprintf(chp, "                           value=[PD|PU]\r\n");
   }
 }
 
@@ -442,8 +435,11 @@ void rc_input_print_dig_sm(BaseSequentialStream * chp, config_entry_mapping_t * 
   uint8_t i = 0;
   uint32_t * digital_switch_mode = entry->payload;
   chprintf(chp, "  %-20s",entry->name);
+  char * str = NULL;
   for(i=0; i<RC_INPUT_DIG_MAX; i++)
   {
-      chprintf(chp, " %s", _rc_input_parse_dig_sm_line_mode_to_str(digital_switch_mode[i]));
+      config_map_value_to_str(digital_switch_mode[i], &str, _rc_input_config_switch_mode_map,
+                              sizeof(_rc_input_config_switch_mode_map)/sizeof(config_mode_map_t));
+      chprintf(chp, " %s", str);
   }
 }

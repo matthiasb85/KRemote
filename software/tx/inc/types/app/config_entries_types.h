@@ -41,7 +41,7 @@ typedef enum
 typedef struct
 {
   flash_storage_header_t header;
-  uint32_t kr_tx;
+  kr_tx_config_t kr_tx;
   rc_input_config_t rc_input;
   nrf_config_t nrf;
   uint32_t usb;
