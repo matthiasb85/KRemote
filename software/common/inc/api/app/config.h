@@ -31,8 +31,14 @@ extern void config_init(void);
 extern void * config_get_module_config(uint32_t id);
 extern uint8_t config_map_str_to_value(char * str, uint32_t * dest, const config_mode_map_t * map, uint8_t map_len);
 extern uint8_t config_map_value_to_str(uint32_t value, char ** dest, const config_mode_map_t * map, uint8_t map_len);
-extern uint8_t config_parse_array(BaseSequentialStream * chp, int argc, char ** argv, config_entry_mapping_t * entry, config_value_type_t type, uint8_t length);
-extern void config_print_array(BaseSequentialStream * chp, config_entry_mapping_t * entry, config_value_type_t type, uint8_t length, config_print_type_t fmt);
+extern uint8_t config_parse_array(BaseSequentialStream * chp, int argc, char ** argv, config_entry_mapping_t * entry,
+                                  config_value_type_t type, uint8_t length);
+extern void config_print_array(BaseSequentialStream * chp, config_entry_mapping_t * entry, config_value_type_t type,
+                               uint8_t length, config_print_type_t fmt);
+extern uint8_t config_parse_array_map(BaseSequentialStream * chp, int argc, char ** argv, config_entry_mapping_t * entry,
+                               uint8_t length, config_set_cb_t set_value_cb, config_mode_map_t * map, uint8_t map_len);
+extern void config_print_array_map(BaseSequentialStream * chp, config_entry_mapping_t * entry,
+                               uint8_t length, config_get_cb_t get_value_cb);
 
 extern CONFIG_PARSE_IF(int8_t);
 extern CONFIG_PARSE_IF(int16_t);

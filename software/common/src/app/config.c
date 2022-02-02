@@ -53,8 +53,14 @@
  */
 static void _config_init_hal(void);
 static void _config_init_module(void);
-static void _config_load_config(uint8_t * dest);
 static config_entry_mapping_t * _config_get_entry_by_name(char * name);
+static void _config_load_config(uint8_t * dest);
+static uint8_t _config_parse_array_entries(char *arg, uint8_t idx, uint8_t length, config_entry_mapping_t * entry,
+                                        config_value_type_t type, config_set_cb_t set_value_cb);
+static uint8_t _config_parse_array_generic(BaseSequentialStream * chp, int argc, char ** argv, config_entry_mapping_t * entry,
+                                           config_value_type_t type, uint8_t length, config_set_cb_t set_value_cb, config_mode_map_t * map, uint8_t map_len);
+static void _config_print_array_generic(BaseSequentialStream * chp, config_entry_mapping_t * entry, config_value_type_t type, uint8_t length,
+                                        config_print_type_t fmt, config_get_cb_t get_value_cb);
 
 /*
  * Static variables
@@ -122,9 +128,11 @@ static config_entry_mapping_t * _config_get_entry_by_name(char * name)
   return NULL;
 }
 
-static void _config_parse_array_entries(char *arg, uint8_t idx, uint8_t length, config_entry_mapping_t * entry, config_value_type_t type)
+static uint8_t _config_parse_array_entries(char *arg, uint8_t idx, uint8_t length, config_entry_mapping_t * entry,
+                                        config_value_type_t type, config_set_cb_t set_value_cb)
 {
   uint8_t i = 0;
+  uint8_t ret = 1;
   for(i=idx; i<(idx+length); i++)
   {
     switch(type)
@@ -137,10 +145,152 @@ static void _config_parse_array_entries(char *arg, uint8_t idx, uint8_t length, 
       case CONFIG_INT16:  ((int16_t *) entry->payload)[i] = (int16_t)strtol(arg, NULL, 0);  break;
       case CONFIG_INT32:  ((int32_t *) entry->payload)[i] = (int32_t)strtol(arg, NULL, 0);  break;
       case CONFIG_INT64:  ((int64_t *) entry->payload)[i] = (int64_t)strtol(arg, NULL, 0);  break;
+      case CONFIG_MAP:    ret = set_value_cb(entry, i, arg); break;
+    }
+  }
+  return ret;
+}
+
+static uint8_t _config_parse_array_generic(BaseSequentialStream * chp, int argc, char ** argv, config_entry_mapping_t * entry,
+                                           config_value_type_t type, uint8_t length, config_set_cb_t set_value_cb,
+                                           config_mode_map_t * map, uint8_t map_len)
+{
+  uint8_t error = 0;
+  uint8_t i = 0;
+
+  if(argc != 3 && argc != length + 1)
+  {
+    error = 1;
+  }
+
+  if(!error)
+  {
+    if(argc == 3)
+    {
+      uint32_t idx = (uint16_t)strtol(argv[1], NULL, 0);
+      if(idx < length)
+      {
+        error = (!_config_parse_array_entries(argv[2], idx, 1, entry, type, set_value_cb));
+      }
+      else if(idx == length)
+      {
+        error = (!_config_parse_array_entries(argv[2], 0, length, entry, type, set_value_cb));
+      }
+      else
+      {
+        error = 1;
+      }
+    }
+    else
+    {
+      for(i=0; i<length; i++)
+      {
+        error = (!_config_parse_array_entries(argv[1+i], i, 1, entry, type, set_value_cb));
+        if(error) break;
+      }
+    }
+  }
+
+  if(error)
+  {
+    chprintf(chp, "Input does not match, use: \r\n");
+    if(argc==2)
+    {
+      chprintf(chp, " config-set %s value\r\n", entry->name,length-1);
+    }
+    else
+    {
+      chprintf(chp, " config-set %s [0..%d] value            (set single value)\r\n", entry->name,length-1);
+      chprintf(chp, "               [%d] value               (set all values)\r\n", length);
+      chprintf(chp, "               value0 value1 ...value%d (set all value individual)\r\n", length-1);
+    }
+    if(type==CONFIG_MAP)
+    {
+      chprintf(chp, " Valid values are: [");
+      for(i=0; i<map_len; i++)
+      {
+        chprintf(chp, "%s|", (char *)map[i].name);
+      }
+      chprintf(chp, "]");
+    }
+    else
+    {
+      chprintf(chp, " Valid values are in range of: ");
+      switch(type)
+      {
+        case CONFIG_UINT8:  chprintf(chp, "UINT8");  break;
+        case CONFIG_UINT16: chprintf(chp, "UINT16");  break;
+        case CONFIG_UINT32: chprintf(chp, "UINT32");  break;
+        case CONFIG_UINT64: chprintf(chp, "UINT64");  break;
+        case CONFIG_INT8:   chprintf(chp, "INT8");  break;
+        case CONFIG_INT16:  chprintf(chp, "INT16");  break;
+        case CONFIG_INT32:  chprintf(chp, "INT32");  break;
+        case CONFIG_INT64:  chprintf(chp, "INT64");  break;
+        default: break;
+      }
+    }
+    chprintf(chp, "\r\n");
+    return 0;
+  }
+
+  return 1;
+}
+
+static void _config_print_array_generic(BaseSequentialStream * chp, config_entry_mapping_t * entry, config_value_type_t type, uint8_t length,
+                                        config_print_type_t fmt, config_get_cb_t get_value_cb)
+{
+  const char *const fmt_str_dec = " %d";
+  const char *const fmt_str_hex2 = " 0x%02x";
+  const char *const fmt_str_hex4 = " 0x%04x";
+  const char *const fmt_str_hex8 = " 0x%08x";
+  const char *const fmt_str_hex16 = " 0x%016x";
+  const char *const fmt_str_str = " %s";
+
+  char * fmt_str = NULL;
+
+  uint8_t i = 0;
+
+  chprintf(chp, "  %-20s ", entry->name);
+  switch(fmt)
+  {
+    case CONFIG_DEC:    fmt_str = (char *)fmt_str_dec; break;
+    case CONFIG_STRING: fmt_str = (char *)fmt_str_str; break;
+    case CONFIG_HEX:
+      switch(type)
+      {
+        case CONFIG_UINT8:
+        case CONFIG_INT8:
+          fmt_str = (char *)fmt_str_hex2; break;
+        case CONFIG_UINT16:
+        case CONFIG_INT16:
+          fmt_str = (char *)fmt_str_hex4; break;
+        case CONFIG_UINT32:
+        case CONFIG_INT32:
+          fmt_str = (char *)fmt_str_hex8; break;
+        case CONFIG_UINT64:
+        case CONFIG_INT64:
+          fmt_str = (char *)fmt_str_hex16; break;
+        default:
+          return;
+      }
+      break;
+  }
+  for(i=0; i<length; i++)
+  {
+    switch(type)
+    {
+      case CONFIG_UINT8:  chprintf(chp, (const char*)fmt_str, ((uint8_t *) entry->payload)[i]); break;
+      case CONFIG_UINT16: chprintf(chp, (const char*)fmt_str, ((uint16_t *) entry->payload)[i]); break;
+      case CONFIG_UINT32: chprintf(chp, (const char*)fmt_str, ((uint32_t *) entry->payload)[i]); break;
+      case CONFIG_UINT64: chprintf(chp, (const char*)fmt_str, ((uint64_t *) entry->payload)[i]); break;
+      case CONFIG_INT8:   chprintf(chp, (const char*)fmt_str, ((int8_t *) entry->payload)[i]); break;
+      case CONFIG_INT16:  chprintf(chp, (const char*)fmt_str, ((int16_t *) entry->payload)[i]); break;
+      case CONFIG_INT32:  chprintf(chp, (const char*)fmt_str, ((int32_t *) entry->payload)[i]); break;
+      case CONFIG_INT64:  chprintf(chp, (const char*)fmt_str, ((int64_t *) entry->payload)[i]); break;
+      case CONFIG_MAP:    chprintf(chp, (const char*)fmt_str, get_value_cb(entry, i)); break;
     }
   }
 }
-
 /*
  * Callback functions
  */
@@ -314,126 +464,49 @@ uint8_t config_map_value_to_str(uint32_t value, char ** dest, const config_mode_
 
 uint8_t config_parse_array(BaseSequentialStream * chp, int argc, char ** argv, config_entry_mapping_t * entry, config_value_type_t type, uint8_t length)
 {
-  uint8_t error = 0;
-  uint8_t i = 0;
-
-  if(argc != 3 && argc != length + 1)
-  {
-    error = 1;
-  }
-
-  if(!error)
-  {
-    if(argc == 3)
-    {
-      uint32_t idx = (uint16_t)strtol(argv[1], NULL, 0);
-      if(idx < length)
-      {
-        _config_parse_array_entries(argv[2], idx, 1, entry, type);
-      }
-      else if(idx == length)
-      {
-        _config_parse_array_entries(argv[2], 0, length, entry, type);
-      }
-      else
-      {
-        error = 1;
-      }
-    }
-    else
-    {
-      for(i=0; i<length; i++)
-      {
-        _config_parse_array_entries(argv[1+i], i, 1, entry, type);
-      }
-    }
-  }
-
-  if(error)
-  {
-    chprintf(chp, "Input does not match, use: [0..%d] value            (set single value)\r\n", length-1);
-    chprintf(chp, "                           [%d] value               (set all values)\r\n", length);
-    chprintf(chp, "                           value0 value1 ...value%d (set all value individual)\r\n", length-1);
-    return 0;
-  }
-
-  return 1;
+  return _config_parse_array_generic(chp, argc, argv, entry, type, length, NULL, NULL, 0);
 }
 
 void config_print_array(BaseSequentialStream * chp, config_entry_mapping_t * entry, config_value_type_t type, uint8_t length, config_print_type_t fmt)
 {
-  const char *const fmt_str_dec = " %d";
-  const char *const fmt_str_hex2 = " 0x%02x";
-  const char *const fmt_str_hex4 = " 0x%04x";
-  const char *const fmt_str_hex8 = " 0x%08x";
-  const char *const fmt_str_hex16 = " 0x%016x";
+  _config_print_array_generic(chp, entry, type, length, fmt, NULL);
+}
 
-  char * fmt_str = NULL;
+uint8_t config_parse_array_map(BaseSequentialStream * chp, int argc, char ** argv, config_entry_mapping_t * entry,
+                               uint8_t length, config_set_cb_t set_value_cb, config_mode_map_t * map, uint8_t map_len)
+{
+  return _config_parse_array_generic(chp, argc, argv, entry, CONFIG_MAP, length, set_value_cb, map, map_len);
+}
 
-  uint8_t i = 0;
-
-  chprintf(chp, "  %-20s ", entry->name);
-  switch(fmt)
-  {
-    case CONFIG_DEC: fmt_str = (char *)fmt_str_dec; break;
-    case CONFIG_HEX:
-      switch(type)
-      {
-        case CONFIG_UINT8:
-        case CONFIG_INT8:
-          fmt_str = (char *)fmt_str_hex2; break;
-        case CONFIG_UINT16:
-        case CONFIG_INT16:
-          fmt_str = (char *)fmt_str_hex4; break;
-        case CONFIG_UINT32:
-        case CONFIG_INT32:
-          fmt_str = (char *)fmt_str_hex8; break;
-        case CONFIG_UINT64:
-        case CONFIG_INT64:
-          fmt_str = (char *)fmt_str_hex16; break;
-      }
-      break;
-  }
-  for(i=0; i<length; i++)
-    {
-      switch(type)
-      {
-        case CONFIG_UINT8:  chprintf(chp, (const char*)fmt_str, ((uint8_t *) entry->payload)[i]); break;
-        case CONFIG_UINT16: chprintf(chp, (const char*)fmt_str, ((uint16_t *) entry->payload)[i]); break;
-        case CONFIG_UINT32: chprintf(chp, (const char*)fmt_str, ((uint32_t *) entry->payload)[i]); break;
-        case CONFIG_UINT64: chprintf(chp, (const char*)fmt_str, ((uint64_t *) entry->payload)[i]); break;
-        case CONFIG_INT8:   chprintf(chp, (const char*)fmt_str, ((int8_t *) entry->payload)[i]); break;
-        case CONFIG_INT16:  chprintf(chp, (const char*)fmt_str, ((int16_t *) entry->payload)[i]); break;
-        case CONFIG_INT32:  chprintf(chp, (const char*)fmt_str, ((int32_t *) entry->payload)[i]); break;
-        case CONFIG_INT64:  chprintf(chp, (const char*)fmt_str, ((int64_t *) entry->payload)[i]); break;
-      }
-    }
+void config_print_array_map(BaseSequentialStream * chp, config_entry_mapping_t * entry, uint8_t length, config_get_cb_t get_value_cb)
+{
+  _config_print_array_generic(chp, entry, CONFIG_MAP, length, CONFIG_STRING, get_value_cb);
 }
 
 /*
  * Generic parser functions
  */
-CONFIG_PARSE_IMPL(int8_t)
-CONFIG_PARSE_IMPL(int16_t)
-CONFIG_PARSE_IMPL(int32_t)
-CONFIG_PARSE_IMPL(int64_t)
-CONFIG_PARSE_IMPL(uint8_t)
-CONFIG_PARSE_IMPL(uint16_t)
-CONFIG_PARSE_IMPL(uint32_t)
-CONFIG_PARSE_IMPL(uint64_t)
+CONFIG_PARSE_IF(int8_t)   { config_parse_array(chp, argc, argv, entry, CONFIG_INT8,   1); }
+CONFIG_PARSE_IF(int16_t)  { config_parse_array(chp, argc, argv, entry, CONFIG_INT16,  1); }
+CONFIG_PARSE_IF(int32_t)  { config_parse_array(chp, argc, argv, entry, CONFIG_INT32,  1); }
+CONFIG_PARSE_IF(int64_t)  { config_parse_array(chp, argc, argv, entry, CONFIG_INT64,  1); }
+CONFIG_PARSE_IF(uint8_t)  { config_parse_array(chp, argc, argv, entry, CONFIG_UINT8,  1); }
+CONFIG_PARSE_IF(uint16_t) { config_parse_array(chp, argc, argv, entry, CONFIG_UINT16, 1); }
+CONFIG_PARSE_IF(uint32_t) { config_parse_array(chp, argc, argv, entry, CONFIG_UINT32, 1); }
+CONFIG_PARSE_IF(uint64_t) { config_parse_array(chp, argc, argv, entry, CONFIG_UINT64, 1); }
 
 /*
  * Generic print functions
  */
-CONFIG_PRINT_IMPL(dec, int8_t)
-CONFIG_PRINT_IMPL(dec, int16_t)
-CONFIG_PRINT_IMPL(dec, int32_t)
-CONFIG_PRINT_IMPL(dec, int64_t)
-CONFIG_PRINT_IMPL(dec, uint8_t)
-CONFIG_PRINT_IMPL(dec, uint16_t)
-CONFIG_PRINT_IMPL(dec, uint32_t)
-CONFIG_PRINT_IMPL(dec, uint64_t)
-CONFIG_PRINT_IF(hex, uint8_t)  { chprintf(chp, "  %-20s %012s0x%02x",entry->name,"\0",*((uint8_t *)entry->payload));}
-CONFIG_PRINT_IF(hex, uint16_t) { chprintf(chp, "  %-20s %010s0x%04x",entry->name,"\0",*((uint16_t *)entry->payload));}
-CONFIG_PRINT_IF(hex, uint32_t) { chprintf(chp, "  %-20s %06s0x%08x", entry->name,"\0",*((uint32_t *)entry->payload));}
-CONFIG_PRINT_IF(hex, uint64_t) { chprintf(chp, "  %-20s 0x%016x",entry->name,*((uint64_t *)entry->payload));}
+CONFIG_PRINT_IF(dec, int8_t)   { config_print_array(chp,entry, CONFIG_INT8,   1, CONFIG_DEC); }
+CONFIG_PRINT_IF(dec, int16_t)  { config_print_array(chp,entry, CONFIG_INT16,  1, CONFIG_DEC); }
+CONFIG_PRINT_IF(dec, int32_t)  { config_print_array(chp,entry, CONFIG_INT32,  1, CONFIG_DEC); }
+CONFIG_PRINT_IF(dec, int64_t)  { config_print_array(chp,entry, CONFIG_INT64,  1, CONFIG_DEC); }
+CONFIG_PRINT_IF(dec, uint8_t)  { config_print_array(chp,entry, CONFIG_UINT8,  1, CONFIG_DEC); }
+CONFIG_PRINT_IF(dec, uint16_t) { config_print_array(chp,entry, CONFIG_UINT16, 1, CONFIG_DEC); }
+CONFIG_PRINT_IF(dec, uint32_t) { config_print_array(chp,entry, CONFIG_UINT32, 1, CONFIG_DEC); }
+CONFIG_PRINT_IF(dec, uint64_t) { config_print_array(chp,entry, CONFIG_UINT64, 1, CONFIG_DEC); }
+CONFIG_PRINT_IF(hex, uint8_t)  { config_print_array(chp,entry, CONFIG_UINT8,  1, CONFIG_HEX); }
+CONFIG_PRINT_IF(hex, uint16_t) { config_print_array(chp,entry, CONFIG_UINT16, 1, CONFIG_HEX); }
+CONFIG_PRINT_IF(hex, uint32_t) { config_print_array(chp,entry, CONFIG_UINT32, 1, CONFIG_HEX); }
+CONFIG_PRINT_IF(hex, uint64_t) { config_print_array(chp,entry, CONFIG_UINT64, 1, CONFIG_HEX); }

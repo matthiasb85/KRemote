@@ -37,12 +37,14 @@ typedef enum
   CONFIG_INT16,
   CONFIG_INT32,
   CONFIG_INT64,
+  CONFIG_MAP
 }config_value_type_t;
 
 typedef enum
 {
   CONFIG_DEC = 0,
-  CONFIG_HEX
+  CONFIG_HEX,
+  CONFIG_STRING
 }config_print_type_t;
 
 typedef struct
@@ -67,26 +69,16 @@ typedef struct
   void ** module_list;
 }config_control_t;
 
+typedef uint8_t (*config_set_cb_t)(config_entry_mapping_t * entry, uint8_t idx, char * arg);
+typedef char * (*config_get_cb_t)(config_entry_mapping_t * entry, uint8_t idx);
+
 #define CONFIG_SECTION_DIVIDER(X) .name = (X), .parse = NULL, .print = NULL, .payload = NULL, .help = "\0"
 
 #define CONFIG_PARSE_FUNC(X)      config_parse_##X
 #define CONFIG_PARSE_IF(X)        void CONFIG_PARSE_FUNC(X) (BaseSequentialStream * chp, int argc, char ** argv, config_entry_mapping_t * entry)
-#define CONFIG_PARSE_IMPL(X)      \
-                                  CONFIG_PARSE_IF(X) \
-                                  { \
-                                    (void)chp; \
-                                    (void)argc; \
-                                    *((X *)entry->payload)  = (X)strtol(argv[1], NULL, 0); \
-                                  }
-
 
 #define _CONFIG_PRINT_FUNC(A,B)   A##B
 #define CONFIG_PRINT_FUNC(X,Y)    _CONFIG_PRINT_FUNC(config_print_##X, Y)
 #define CONFIG_PRINT_IF(X,Y)      void CONFIG_PRINT_FUNC(X,Y) (BaseSequentialStream * chp, config_entry_mapping_t * entry)
-#define CONFIG_PRINT_IMPL(X,Y)    \
-                                  CONFIG_PRINT_IF(X,Y) \
-                                  { \
-                                    chprintf(chp, "  %-20s %16d",entry->name,*((Y *)entry->payload)); \
-                                  }
 
 #endif /* INC_TYPES_APP_CONFIG_TYPES_H_ */
