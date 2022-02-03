@@ -312,7 +312,7 @@ static uint8_t _rc_input_set_dig_sm_cb(config_entry_mapping_t * entry, uint8_t i
 {
   uint32_t * digital_switch_mode = entry->payload;
   return config_map_str_to_value(arg, &digital_switch_mode[idx], _rc_input_config_switch_mode_map,
-              sizeof(_rc_input_config_switch_mode_map)/sizeof(config_mode_map_t));
+              sizeof(_rc_input_config_switch_mode_map)/sizeof(config_mode_map_t), CONFIG_UINT32);
 }
 
 static char * _rc_input_get_dig_sm_cb(config_entry_mapping_t * entry, uint8_t idx)

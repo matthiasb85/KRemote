@@ -395,17 +395,32 @@ static uint8_t _nrf_set_config_cb(config_entry_mapping_t * entry, uint8_t idx, c
 {
   config_mode_map_t * map = NULL;
   uint8_t map_len = _nrf_config_get_mapping_table(entry, &map);
-  uint32_t * digital_switch_mode = entry->payload;
-  return config_map_str_to_value(arg, &digital_switch_mode[idx], map, map_len);
+  uint32_t * value = NULL;
+
+  if(strcmp(entry->name, "nrf-mode") == 0)    { value = (uint32_t *)(&((nrf_mode_t *)(entry->payload))[idx]); }
+  else if(strcmp(entry->name, "nrf-pa") == 0) { value = (uint32_t *)(&((nrf_pa_dbm_t *)(entry->payload))[idx]); }
+  else if(strcmp(entry->name, "nrf-dr") == 0) { value = (uint32_t *)(&((nrf_datarate_t *)(entry->payload))[idx]); }
+  else if(strcmp(entry->name, "nrf-aw") == 0) { value = (uint32_t *)(&((nrf_addr_width_t *)(entry->payload))[idx]); }
+  else return 0;
+
+  return config_map_str_to_value(arg, value, map, map_len, CONFIG_UINT8);
 }
 
 static char * _nrf_get_config_cb(config_entry_mapping_t * entry, uint8_t idx)
 {
   config_mode_map_t * map = NULL;
   uint8_t map_len = _nrf_config_get_mapping_table(entry, &map);
-  uint8_t * value = entry->payload;
   char *str = NULL;
-  config_map_value_to_str(value[idx], &str, map, map_len);
+
+  uint32_t value = 0;
+
+  if(strcmp(entry->name, "nrf-mode") == 0)    { value = (uint32_t)((nrf_mode_t *)(entry->payload))[idx]; }
+  else if(strcmp(entry->name, "nrf-pa") == 0) { value = (uint32_t)((nrf_pa_dbm_t *)(entry->payload))[idx]; }
+  else if(strcmp(entry->name, "nrf-dr") == 0) { value = (uint32_t)((nrf_datarate_t *)(entry->payload))[idx]; }
+  else if(strcmp(entry->name, "nrf-aw") == 0) { value = (uint32_t)((nrf_addr_width_t *)(entry->payload))[idx]; }
+  else return NULL;
+
+  config_map_value_to_str(value, &str, map, map_len);
 
   return str;
 }

@@ -444,14 +444,26 @@ void * config_get_module_config(uint32_t id)
   return (void *)_config_control->module_list[id];
 }
 
-uint8_t config_map_str_to_value(char * str, uint32_t * dest, const config_mode_map_t * map, uint8_t map_len)
+uint8_t config_map_str_to_value(char * str, void * dest, const config_mode_map_t * map, uint8_t map_len, config_value_type_t type)
 {
   uint8_t i = 0;
   for(i=0; i < map_len; i++)
   {
     if(strcmp(str, (char *)map[i].name)==0)
     {
-      *dest = map[i].mode;
+      switch(type)
+      {
+        case CONFIG_UINT8:  *((uint8_t *)dest)  = (uint8_t) map[i].mode;  break;
+        case CONFIG_INT8:   *((int8_t *)dest)   = (int8_t) map[i].mode;   break;
+        case CONFIG_UINT16: *((uint16_t *)dest) = (uint16_t) map[i].mode; break;
+        case CONFIG_INT16:  *((int16_t *)dest)  = (int16_t) map[i].mode;  break;
+        case CONFIG_UINT32: *((uint32_t *)dest) = (uint32_t) map[i].mode; break;
+        case CONFIG_INT32:  *((int32_t *)dest)  = (int32_t) map[i].mode;  break;
+        case CONFIG_UINT64: *((uint64_t *)dest) = (uint64_t) map[i].mode; break;
+        case CONFIG_INT64:  *((int64_t *)dest)  = (int64_t) map[i].mode;  break;
+        default:
+          return 0;
+      }
       return 1;
     }
   }

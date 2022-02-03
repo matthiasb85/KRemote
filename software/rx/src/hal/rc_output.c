@@ -181,7 +181,7 @@ static uint8_t _rc_output_set_dig_om_cb(config_entry_mapping_t * entry, uint8_t 
 {
   uint32_t * digital_output_mode = entry->payload;
   return config_map_str_to_value(arg, &digital_output_mode[idx], _rc_output_config_output_mode_map,
-              sizeof(_rc_output_config_output_mode_map)/sizeof(config_mode_map_t));
+              sizeof(_rc_output_config_output_mode_map)/sizeof(config_mode_map_t), CONFIG_UINT32);
 }
 
 static char * _rc_output_get_dig_om_cb(config_entry_mapping_t * entry, uint8_t idx)
