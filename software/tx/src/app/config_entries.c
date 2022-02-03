@@ -67,24 +67,41 @@ static config_entries_t _config_entries_config = {
             RC_INPUT_AN_MAX_VALUE, RC_INPUT_AN_MAX_VALUE, RC_INPUT_AN_MAX_VALUE, RC_INPUT_AN_MAX_VALUE,
             RC_INPUT_AN_MAX_VALUE, RC_INPUT_AN_MAX_VALUE, RC_INPUT_AN_MAX_VALUE, RC_INPUT_AN_MAX_VALUE
         },
-        .mapping = {
-            { .type = KR_TX_MAP_ANALOG,   .channel = 0, .inverted = KR_TX_INV_FALSE, .output_min = 0, .output_max = KR_CHANNEL_MAX_VALUE, .condition = KR_TX_COND_NONE, .threshold = 0 },
-            { .type = KR_TX_MAP_ANALOG,   .channel = 1, .inverted = KR_TX_INV_FALSE, .output_min = 0, .output_max = KR_CHANNEL_MAX_VALUE, .condition = KR_TX_COND_NONE, .threshold = 0 },
-            { .type = KR_TX_MAP_DISABLED, .channel = 0, .inverted = KR_TX_INV_FALSE, .output_min = 0, .output_max = KR_CHANNEL_MAX_VALUE, .condition = KR_TX_COND_NONE, .threshold = 0 },
-            { .type = KR_TX_MAP_DISABLED, .channel = 0, .inverted = KR_TX_INV_FALSE, .output_min = 0, .output_max = KR_CHANNEL_MAX_VALUE, .condition = KR_TX_COND_NONE, .threshold = 0 },
-            { .type = KR_TX_MAP_DIGITAL,  .channel = 1, .inverted = KR_TX_INV_FALSE, .output_min = 0, .output_max = KR_CHANNEL_MAX_VALUE, .condition = KR_TX_COND_LE,   .threshold = 1900 },
-            { .type = KR_TX_MAP_DIGITAL,  .channel = 8, .inverted = KR_TX_INV_FALSE, .output_min = 0, .output_max = KR_CHANNEL_MAX_VALUE, .condition = KR_TX_COND_GE,   .threshold = 1024 },
-            { .type = KR_TX_MAP_DISABLED, .channel = 0, .inverted = KR_TX_INV_FALSE, .output_min = 0, .output_max = KR_CHANNEL_MAX_VALUE, .condition = KR_TX_COND_NONE, .threshold = 0 },
-            { .type = KR_TX_MAP_DISABLED, .channel = 0, .inverted = KR_TX_INV_FALSE, .output_min = 0, .output_max = KR_CHANNEL_MAX_VALUE, .condition = KR_TX_COND_NONE, .threshold = 0 },
-            { .type = KR_TX_MAP_DISABLED, .channel = 0, .inverted = KR_TX_INV_FALSE, .output_min = 0, .output_max = KR_CHANNEL_MAX_VALUE, .condition = KR_TX_COND_NONE, .threshold = 0 },
-            { .type = KR_TX_MAP_DISABLED, .channel = 0, .inverted = KR_TX_INV_FALSE, .output_min = 0, .output_max = KR_CHANNEL_MAX_VALUE, .condition = KR_TX_COND_NONE, .threshold = 0 },
-            { .type = KR_TX_MAP_DISABLED, .channel = 0, .inverted = KR_TX_INV_FALSE, .output_min = 0, .output_max = KR_CHANNEL_MAX_VALUE, .condition = KR_TX_COND_NONE, .threshold = 0 },
-            { .type = KR_TX_MAP_DISABLED, .channel = 0, .inverted = KR_TX_INV_FALSE, .output_min = 0, .output_max = KR_CHANNEL_MAX_VALUE, .condition = KR_TX_COND_NONE, .threshold = 0 },
-            { .type = KR_TX_MAP_DISABLED, .channel = 0, .inverted = KR_TX_INV_FALSE, .output_min = 0, .output_max = KR_CHANNEL_MAX_VALUE, .condition = KR_TX_COND_NONE, .threshold = 0 },
-            { .type = KR_TX_MAP_DISABLED, .channel = 0, .inverted = KR_TX_INV_FALSE, .output_min = 0, .output_max = KR_CHANNEL_MAX_VALUE, .condition = KR_TX_COND_NONE, .threshold = 0 },
-            { .type = KR_TX_MAP_DISABLED, .channel = 0, .inverted = KR_TX_INV_FALSE, .output_min = 0, .output_max = KR_CHANNEL_MAX_VALUE, .condition = KR_TX_COND_NONE, .threshold = 0 },
-            { .type = KR_TX_MAP_DISABLED, .channel = 0, .inverted = KR_TX_INV_FALSE, .output_min = 0, .output_max = KR_CHANNEL_MAX_VALUE, .condition = KR_TX_COND_NONE, .threshold = 0 },
+        .map_type = {
+            KR_TX_MAP_ANALOG, KR_TX_MAP_ANALOG, KR_TX_MAP_DISABLED, KR_TX_MAP_DISABLED,
+            KR_TX_MAP_DIGITAL, KR_TX_MAP_DIGITAL, KR_TX_MAP_DISABLED, KR_TX_MAP_DISABLED,
+            KR_TX_MAP_DISABLED, KR_TX_MAP_DISABLED, KR_TX_MAP_DISABLED, KR_TX_MAP_DISABLED,
+            KR_TX_MAP_DISABLED, KR_TX_MAP_DISABLED, KR_TX_MAP_DISABLED, KR_TX_MAP_DISABLED
         },
+        .map_channel = {
+            0, 1, 0, 0, 1, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+        },
+        .map_inverted = {
+            KR_TX_INV_FALSE, KR_TX_INV_FALSE, KR_TX_INV_FALSE, KR_TX_INV_FALSE,
+            KR_TX_INV_FALSE, KR_TX_INV_FALSE, KR_TX_INV_FALSE, KR_TX_INV_FALSE,
+            KR_TX_INV_FALSE, KR_TX_INV_FALSE, KR_TX_INV_FALSE, KR_TX_INV_FALSE,
+            KR_TX_INV_FALSE, KR_TX_INV_FALSE, KR_TX_INV_FALSE, KR_TX_INV_FALSE
+        },
+        .map_output_min = {
+            0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+        },
+        .map_output_max = {
+            KR_CHANNEL_MAX_VALUE, KR_CHANNEL_MAX_VALUE, KR_CHANNEL_MAX_VALUE, KR_CHANNEL_MAX_VALUE,
+            KR_CHANNEL_MAX_VALUE, KR_CHANNEL_MAX_VALUE, KR_CHANNEL_MAX_VALUE, KR_CHANNEL_MAX_VALUE,
+            KR_CHANNEL_MAX_VALUE, KR_CHANNEL_MAX_VALUE, KR_CHANNEL_MAX_VALUE, KR_CHANNEL_MAX_VALUE,
+            KR_CHANNEL_MAX_VALUE, KR_CHANNEL_MAX_VALUE, KR_CHANNEL_MAX_VALUE, KR_CHANNEL_MAX_VALUE
+        },
+        .map_condition = {
+            KR_TX_COND_NONE, KR_TX_COND_NONE, KR_TX_COND_NONE, KR_TX_COND_NONE,
+            KR_TX_COND_LE, KR_TX_COND_GE, KR_TX_COND_NONE, KR_TX_COND_NONE,
+            KR_TX_COND_NONE, KR_TX_COND_NONE, KR_TX_COND_NONE, KR_TX_COND_NONE,
+            KR_TX_COND_NONE, KR_TX_COND_NONE, KR_TX_COND_NONE, KR_TX_COND_NONE
+        },
+        .map_threshold = {
+            0, 0, 0, 0, 1900, 1024, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+        },
+        .main_thread_prio = KR_TX_MAIN_THREAD_PRIO,
+        .main_thread_period_ms = KR_TX_MAIN_THREAD_PERIOD,
     },
     .rc_input = {
         .digital_switch_mode = {
@@ -107,9 +124,18 @@ static config_entries_t _config_entries_config = {
 
 static const config_entry_mapping_t _config_entries_mapping[] = {
     { CONFIG_SECTION_DIVIDER("kr-tx config entries") },
-    { .name = "kr-tx-trim",      .parse = kr_tx_parse_array, .print = kr_tx_print_array, .payload = &_config_entries_config.kr_tx.trim, .help ="kr-tx trim values"},
-    { .name = "kr-tx-input-min", .parse = kr_tx_parse_array, .print = kr_tx_print_array, .payload = &_config_entries_config.kr_tx.input_min, .help ="kr-tx input min values"},
-    { .name = "kr-tx-input-min", .parse = kr_tx_parse_array, .print = kr_tx_print_array, .payload = &_config_entries_config.kr_tx.input_max, .help ="kr-tx input max values"},
+    { .name = "kr-tx-main-p",    .parse = CONFIG_PARSE_FUNC(uint32_t), .print = CONFIG_PRINT_FUNC(dec,uint32_t), .payload = &_config_entries_config.kr_tx.main_thread_prio,            .help = "Main thread priority"},
+    { .name = "kr-tx-main-ms",   .parse = CONFIG_PARSE_FUNC(uint32_t), .print = CONFIG_PRINT_FUNC(dec,uint32_t), .payload = &_config_entries_config.kr_tx.main_thread_period_ms,       .help = "Period in ms for main thread"},
+    { .name = "kr-tx-trim",      .parse = kr_tx_parse_config,     .print = kr_tx_print_config,     .payload = &_config_entries_config.kr_tx.trim,           .help ="kr-tx trim values"},
+    { .name = "kr-tx-input-min", .parse = kr_tx_parse_config,     .print = kr_tx_print_config,     .payload = &_config_entries_config.kr_tx.input_min,      .help ="kr-tx input min values"},
+    { .name = "kr-tx-input-min", .parse = kr_tx_parse_config,     .print = kr_tx_print_config,     .payload = &_config_entries_config.kr_tx.input_max,      .help ="kr-tx input max values"},
+    { .name = "kr-tx-map-type",  .parse = kr_tx_parse_config_map, .print = kr_tx_print_config_map, .payload = &_config_entries_config.kr_tx.map_type,       .help ="kr-tx channel map type"},
+    { .name = "kr-tx-map-ch",    .parse = kr_tx_parse_config,     .print = kr_tx_print_config,     .payload = &_config_entries_config.kr_tx.map_channel,    .help ="kr-tx channel map"},
+    { .name = "kr-tx-map-inv",   .parse = kr_tx_parse_config_map, .print = kr_tx_print_config_map, .payload = &_config_entries_config.kr_tx.map_inverted,   .help ="kr-tx channel invert"},
+    { .name = "kr-tx-map-omin",  .parse = kr_tx_parse_config,     .print = kr_tx_print_config,     .payload = &_config_entries_config.kr_tx.map_output_min, .help ="kr-tx channel min value"},
+    { .name = "kr-tx-map-omax",  .parse = kr_tx_parse_config,     .print = kr_tx_print_config,     .payload = &_config_entries_config.kr_tx.map_output_max, .help ="kr-tx channel max value"},
+    { .name = "kr-tx-map-cond",  .parse = kr_tx_parse_config_map, .print = kr_tx_print_config_map, .payload = &_config_entries_config.kr_tx.map_condition,  .help ="kr-tx channel digital switch condition"},
+    { .name = "kr-tx-map-thresh",.parse = kr_tx_parse_config,     .print = kr_tx_print_config,     .payload = &_config_entries_config.kr_tx.map_threshold,  .help ="kr-tx channel digital switch threshold"},
     { CONFIG_SECTION_DIVIDER("rc-input config entries") },
     { .name = "ri-dig-sm",      .parse = rc_input_parse_dig_sm,       .print = rc_input_print_dig_sm,           .payload = &_config_entries_config.rc_input.digital_switch_mode,         .help = "Digital switch mode"},
     { .name = "ri-poll-p",      .parse = CONFIG_PARSE_FUNC(uint32_t), .print = CONFIG_PRINT_FUNC(dec,uint32_t), .payload = &_config_entries_config.rc_input.poll_thread_prio,            .help = "Poll thread priority"},

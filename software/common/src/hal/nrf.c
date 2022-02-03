@@ -57,7 +57,7 @@ static uint8_t _nrf_init_transceiver(void);
 static void _nrf_flush_rx_tx_buffers(void);
 static uint8_t _nrf_execute_command(nrf_commands_t cmd, uint8_t * tx_buf, uint8_t * rx_buf, uint8_t size);
 static void _nrf_set_connection_state(nrf_connection_state_t state);
-static uint8_t _nrf_config_get_mapping_table(config_entry_mapping_t * entry, config_mode_map_t ** map);
+static uint8_t _nrf_config_get_mapping_table(char * name, config_mode_map_t ** map);
 static void _nrf_irq_line_cb(void *arg);
 static void _nrf_rx_timeout_cb(void *arg);
 static uint8_t _nrf_set_config_cb(config_entry_mapping_t * entry, uint8_t idx, char * arg);
@@ -350,13 +350,13 @@ static void _nrf_set_connection_state(nrf_connection_state_t state)
   }
 }
 
-static uint8_t _nrf_config_get_mapping_table(config_entry_mapping_t * entry, config_mode_map_t ** map)
+static uint8_t _nrf_config_get_mapping_table(char * name, config_mode_map_t ** map)
 {
   uint8_t map_len = 0;
-  if(strcmp(entry->name, "nrf-mode") == 0)    { *map = (config_mode_map_t *)_nrf_config_opmode_map; map_len = sizeof(_nrf_config_opmode_map); }
-  else if(strcmp(entry->name, "nrf-pa") == 0) { *map = (config_mode_map_t *)_nrf_config_palevel_map; map_len = sizeof(_nrf_config_palevel_map); }
-  else if(strcmp(entry->name, "nrf-dr") == 0) { *map = (config_mode_map_t *)_nrf_config_datarate_map; map_len = sizeof(_nrf_config_datarate_map); }
-  else if(strcmp(entry->name, "nrf-aw") == 0) { *map = (config_mode_map_t *)_nrf_config_addresswidth_map; map_len = sizeof(_nrf_config_addresswidth_map); }
+  if(strcmp(name, "nrf-mode") == 0)    { *map = (config_mode_map_t *)_nrf_config_opmode_map; map_len = sizeof(_nrf_config_opmode_map); }
+  else if(strcmp(name, "nrf-pa") == 0) { *map = (config_mode_map_t *)_nrf_config_palevel_map; map_len = sizeof(_nrf_config_palevel_map); }
+  else if(strcmp(name, "nrf-dr") == 0) { *map = (config_mode_map_t *)_nrf_config_datarate_map; map_len = sizeof(_nrf_config_datarate_map); }
+  else if(strcmp(name, "nrf-aw") == 0) { *map = (config_mode_map_t *)_nrf_config_addresswidth_map; map_len = sizeof(_nrf_config_addresswidth_map); }
   else return 0;
   return map_len/sizeof(config_mode_map_t);
 }
@@ -394,7 +394,7 @@ static void _nrf_rx_timeout_cb(void *arg)
 static uint8_t _nrf_set_config_cb(config_entry_mapping_t * entry, uint8_t idx, char * arg)
 {
   config_mode_map_t * map = NULL;
-  uint8_t map_len = _nrf_config_get_mapping_table(entry, &map);
+  uint8_t map_len = _nrf_config_get_mapping_table((char *)entry->name, &map);
   uint32_t * value = NULL;
 
   if(strcmp(entry->name, "nrf-mode") == 0)    { value = (uint32_t *)(&((nrf_mode_t *)(entry->payload))[idx]); }
@@ -409,7 +409,7 @@ static uint8_t _nrf_set_config_cb(config_entry_mapping_t * entry, uint8_t idx, c
 static char * _nrf_get_config_cb(config_entry_mapping_t * entry, uint8_t idx)
 {
   config_mode_map_t * map = NULL;
-  uint8_t map_len = _nrf_config_get_mapping_table(entry, &map);
+  uint8_t map_len = _nrf_config_get_mapping_table((char *)entry->name, &map);
   char *str = NULL;
 
   uint32_t value = 0;
@@ -503,7 +503,7 @@ void nrf_register_connection_state_change_callback(void(*cb)(nrf_connection_stat
 void nrf_parse_config(BaseSequentialStream * chp, int argc, char ** argv, config_entry_mapping_t * entry)
 {
   config_mode_map_t * map = NULL;
-  uint8_t map_len = _nrf_config_get_mapping_table(entry, &map);
+  uint8_t map_len = _nrf_config_get_mapping_table((char *)entry->name, &map);
 
   config_parse_array_map(chp, argc, argv, entry, 1, _nrf_set_config_cb,map,map_len);
 }

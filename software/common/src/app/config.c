@@ -294,7 +294,7 @@ static void _config_print_array_generic(BaseSequentialStream * chp, config_entry
       case CONFIG_MAP:    chsnprintf(&buffer[p_idx], max_len, (const char*)fmt_str, get_value_cb(entry, i)); break;
     }
   }
-  chprintf(chp, "%-96s %s\r\n", buffer, (print_help) ? entry->help : "\0");
+  chprintf(chp, "%-128s %s\r\n", buffer, (print_help) ? entry->help : "\0");
 }
 
 /*

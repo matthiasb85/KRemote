@@ -62,6 +62,9 @@ static void _kr_tx_init_hal(void);
 static void _kr_tx_init_module(void);
 static void _kr_tx_trim_and_limit(rc_input_ch_states_t * states, uint8_t channels);
 static void _kr_tx_map_channels(kr_transmit_frame_t * frame, rc_input_ch_states_t * states, uint8_t channels);
+static uint8_t _kr_tx_config_get_mapping_table(char * name, config_mode_map_t ** map);
+static uint8_t _kr_tx_set_config_cb(config_entry_mapping_t * entry, uint8_t idx, char * arg);
+static char * _kr_tx_get_config_cb(config_entry_mapping_t * entry, uint8_t idx);
 
 /*
  * Static variables
@@ -69,17 +72,17 @@ static void _kr_tx_map_channels(kr_transmit_frame_t * frame, rc_input_ch_states_
 static THD_WORKING_AREA(_kr_tx_main_stack, KR_TX_MAIN_THREAD_STACK);
 static kr_transmit_frame_t _kr_tx_frame;
 static kr_tx_config_t * _kr_tx_config = NULL;
-static const config_mode_map_t kr_tx_mapping_type[] = {
+static const config_mode_map_t _kr_tx_mapping_type[] = {
   {"DIS", KR_TX_MAP_DISABLED},
   {"ANA", KR_TX_MAP_ANALOG},
   {"DIG", KR_TX_MAP_DIGITAL}
 };
-static const config_mode_map_t kr_tx_condition[] = {
+static const config_mode_map_t _kr_tx_condition[] = {
   {"NONE",KR_TX_COND_NONE},
   {"GE", KR_TX_COND_GE},
   {"LE", KR_TX_COND_LE}
 };
-static const config_mode_map_t kr_tx_direction[] = {
+static const config_mode_map_t _kr_tx_direction[] = {
   {"FALSE",KR_TX_INV_FALSE},
   {"TRUE", KR_TX_INV_TRUE},
 };
@@ -111,7 +114,7 @@ static __attribute__((noreturn)) THD_FUNCTION(_kr_tx_main_thread, arg)
     _kr_tx_map_channels(&_kr_tx_frame, states, KR_CHANNEL_NUMBER);
     nrf_send_payload(&_kr_tx_frame, sizeof(_kr_tx_frame));
 
-    chThdSleepUntilWindowed(time, time + TIME_MS2I(10));
+    chThdSleepUntilWindowed(time, time + TIME_MS2I(_kr_tx_config->main_thread_period_ms));
   }
 }
 
@@ -129,7 +132,7 @@ static void _kr_tx_init_module(void)
   /*
    * Create application main thread
    */
-  chThdCreateStatic(_kr_tx_main_stack, sizeof(_kr_tx_main_stack), KR_TX_MAIN_THREAD_PRIO,
+  chThdCreateStatic(_kr_tx_main_stack, sizeof(_kr_tx_main_stack), _kr_tx_config->main_thread_prio,
                     _kr_tx_main_thread, NULL);
 }
 
@@ -162,26 +165,26 @@ static void _kr_tx_map_channels(kr_transmit_frame_t * frame, rc_input_ch_states_
   uint8_t i = 0;
   for(i=0; i<channels; i++)
   {
-    uint8_t i_id = _kr_tx_config->mapping[i].channel;
+    uint8_t i_id = _kr_tx_config->map_channel[i];
+    kr_tx_mapping_type_t type = _kr_tx_config->map_type[i];
+    kr_tx_direction_t inverted = _kr_tx_config->map_inverted[i];
+    kr_ch_t output_min = _kr_tx_config->map_output_min[i];
+    kr_ch_t output_max = _kr_tx_config->map_output_max[i];
+    kr_tx_condition_t condition = _kr_tx_config->map_condition[i];
+    uint16_t threshold = _kr_tx_config->map_threshold[i];
     uint16_t i_channel = states[i_id].state.analog;
-    kr_tx_mapping_t * mapping = &_kr_tx_config->mapping[i];
-    switch(mapping->type)
+
+    switch(type)
     {
       case KR_TX_MAP_ANALOG:
-        frame->channels[i] = mapping->output_min + (kr_ch_t)((float)i_channel*
-            ((float)(mapping->output_max-mapping->output_min) / (float)(_kr_tx_config->input_max[i_id]-_kr_tx_config->input_min[i_id])));
+        frame->channels[i] = output_min + (kr_ch_t)((float)i_channel*
+            ((float)(output_max-output_min) / (float)(_kr_tx_config->input_max[i_id]-_kr_tx_config->input_min[i_id])));
         break;
       case KR_TX_MAP_DIGITAL:
-        switch(mapping->condition)
+        switch(condition)
         {
-          case KR_TX_COND_GE:
-            frame->channels[i] = (i_channel >= mapping->threshold) ?
-                mapping->output_max : mapping->output_min;
-            break;
-          case KR_TX_COND_LE:
-            frame->channels[i] = (i_channel <= mapping->threshold) ?
-                mapping->output_max : mapping->output_min;
-            break;
+          case KR_TX_COND_GE: frame->channels[i] = (i_channel >= threshold) ? output_max : output_min; break;
+          case KR_TX_COND_LE: frame->channels[i] = (i_channel <= threshold) ? output_max : output_min; break;
           default:
             break;
         }
@@ -190,31 +193,147 @@ static void _kr_tx_map_channels(kr_transmit_frame_t * frame, rc_input_ch_states_
       default:
         break;
     }
-    if(mapping->type)
+    if(type)
     {
-      frame->channels[i] = (mapping->inverted == KR_TX_INV_TRUE) ?
-          KR_CHANNEL_MAX_VALUE - frame->channels[i] : frame->channels[i];
+      frame->channels[i] = (inverted == KR_TX_INV_TRUE) ? KR_CHANNEL_MAX_VALUE - frame->channels[i] : frame->channels[i];
     }
   }
+}
+
+static uint8_t _kr_tx_config_get_mapping_table(char * name, config_mode_map_t ** map)
+{
+  uint8_t map_len = 0;
+  if(strcmp(name, "kr-tx-map-type") == 0)      { *map = (config_mode_map_t *)_kr_tx_mapping_type; map_len = sizeof(_kr_tx_mapping_type); }
+  else if(strcmp(name, "kr-tx-map-inv") == 0)  { *map = (config_mode_map_t *)_kr_tx_direction; map_len = sizeof(_kr_tx_direction); }
+  else if(strcmp(name, "kr-tx-map-cond") == 0) { *map = (config_mode_map_t *)_kr_tx_condition; map_len = sizeof(_kr_tx_condition); }
+  else return 0;
+  return map_len/sizeof(config_mode_map_t);
 }
 
 /*
  * Callback functions
  */
+static uint8_t _kr_tx_set_config_cb(config_entry_mapping_t * entry, uint8_t idx, char * arg)
+{
+  config_mode_map_t * map = NULL;
+  uint8_t map_len = _kr_tx_config_get_mapping_table((char *)entry->name, &map);
+  uint32_t * value = NULL;
+
+  if(strcmp(entry->name, "kr-tx-map-type") == 0)    { value = (uint32_t *)(&((kr_tx_mapping_type_t*)(entry->payload))[idx]); }
+  else if(strcmp(entry->name, "kr-tx-map-inv") == 0) { value = (uint32_t *)(&((kr_tx_direction_t *)(entry->payload))[idx]); }
+  else if(strcmp(entry->name, "kr-tx-map-cond") == 0) { value = (uint32_t *)(&((kr_tx_condition_t *)(entry->payload))[idx]); }
+  else return 0;
+
+  return config_map_str_to_value(arg, value, map, map_len, CONFIG_UINT8);
+}
+
+static char * _kr_tx_get_config_cb(config_entry_mapping_t * entry, uint8_t idx)
+{
+  config_mode_map_t * map = NULL;
+  uint8_t map_len = _kr_tx_config_get_mapping_table((char *)entry->name, &map);
+  char *str = NULL;
+
+  uint32_t value = 0;
+
+  if(strcmp(entry->name, "kr-tx-map-type") == 0)    { value = (uint32_t)((kr_tx_mapping_type_t *)(entry->payload))[idx]; }
+  else if(strcmp(entry->name, "kr-tx-map-inv") == 0) { value = (uint32_t)((kr_tx_direction_t *)(entry->payload))[idx]; }
+  else if(strcmp(entry->name, "kr-tx-map-cond") == 0) { value = (uint32_t)((kr_tx_condition_t *)(entry->payload))[idx]; }
+  else return NULL;
+
+  config_map_value_to_str(value, &str, map, map_len);
+
+  return str;
+}
 
 #if defined(USE_CMD_SHELL)
 /*
  * Shell functions
  */
-void kr_tx_foo_sh(BaseSequentialStream *chp, int argc, char *argv[])
+void kr_tx_show_channel(BaseSequentialStream *chp, int argc, char *argv[])
 {
   if (argc != 1)
   {
-    chprintf(chp, "Usage:  kr_tx_foo address\r\n");
+    chprintf(chp, "Usage:  kr-tx-show-channel channel\r\n");
     return;
   }
-  uint32_t *address = (uint32_t *)strtol(argv[0], NULL, 16);
-  chprintf(chp, "STFU 0x%08p\r\n\r\n", address);
+  config_mode_map_t * map = NULL;
+  uint8_t map_len = 0;
+  uint32_t ch = (uint16_t)strtol(argv[0], NULL, 0);
+
+  char * type = NULL;
+  map_len = _kr_tx_config_get_mapping_table("kr-tx-map-type", &map);
+  config_map_value_to_str(_kr_tx_config->map_type[ch], &type, map, map_len);
+
+  uint8_t input_channel = _kr_tx_config->map_channel[ch];
+  int16_t input_trim = _kr_tx_config->trim[input_channel];
+  uint16_t input_min = _kr_tx_config->input_min[input_channel];
+  uint16_t input_max = _kr_tx_config->input_max[input_channel];
+
+  kr_ch_t output_min = _kr_tx_config->map_output_min[ch];
+  kr_ch_t output_max = _kr_tx_config->map_output_max[ch];
+
+  char * inverted = NULL;
+  map_len = _kr_tx_config_get_mapping_table("kr-tx-map-inv", &map);
+  config_map_value_to_str(_kr_tx_config->map_inverted[ch], &inverted, map, map_len);
+
+  char * condition = NULL;
+  map_len = _kr_tx_config_get_mapping_table("kr-tx-map-cond", &map);
+  config_map_value_to_str(_kr_tx_config->map_condition[ch], &condition, map, map_len);
+
+  uint16_t threshold = _kr_tx_config->map_threshold[ch];
+
+  chprintf(chp, "Channel mapping for output channel %d\r\n", ch);
+  chprintf(chp, " Mapping type:  %s\r\n", type);
+  chprintf(chp, " Input channel: %d\r\n", input_channel);
+  chprintf(chp, "     |-trim:    %d\r\n", input_trim);
+  chprintf(chp, "     |-min:     %d\r\n", input_min);
+  chprintf(chp, "     |-max:     %d\r\n", input_max);
+  chprintf(chp, " Output min:    %d\r\n", output_min);
+  chprintf(chp, "      |-max:    %d\r\n", output_max);
+  chprintf(chp, " Inverted:      %s\r\n", inverted);
+  chprintf(chp, " Condition:     %s\r\n", condition);
+  chprintf(chp, " Threshold:     %d\r\n", threshold);
+
+}
+
+void kr_tx_trim_channel(BaseSequentialStream *chp, int argc, char *argv[])
+{
+  if (argc != 1)
+  {
+    chprintf(chp, "Usage:  kr-tx-trim-channel channel\r\n");
+    return;
+  }
+  uint32_t ch = (uint16_t)strtol(argv[0], NULL, 0);
+
+  int16_t old = _kr_tx_config->trim[ch];
+
+  chprintf(chp, "Modify trim value via +/-, press ENTER to save value or a/A to abort!\r\n");
+  while (true)
+  {
+    chprintf(chp, "CH%d %5d\r",ch, _kr_tx_config->trim[ch]);
+
+    uint8_t input=0;
+
+    if(streamRead(chp,&input,1))
+    {
+      switch(input)
+      {
+        case '+': _kr_tx_config->trim[ch] += 10; break;
+        case '-': _kr_tx_config->trim[ch] -= 10; break;
+        case 0x0d:
+          chprintf(chp, "\r\nSaved trim value %d for input channel %d. Use config-store to persist data!\r\n", _kr_tx_config->trim[ch], ch);
+          return;
+        case 'a':
+        case 'A':
+          _kr_tx_config->trim[ch] = old;
+          chprintf(chp, "Abort!\r\n");
+          return;
+        default:
+          break;;
+      }
+    }
+    chThdSleep(TIME_MS2I(10));
+  }
 }
 
 #endif
@@ -273,22 +392,52 @@ void kr_tx_init(void)
    */
 }
 
-void kr_tx_parse_array(BaseSequentialStream * chp, int argc, char ** argv, config_entry_mapping_t * entry)
+void kr_tx_parse_config(BaseSequentialStream * chp, int argc, char ** argv, config_entry_mapping_t * entry)
 {
   if(strcmp(entry->name, "kr-tx-trim") == 0)
-    config_parse_array(chp, argc, argv, entry, CONFIG_INT16, KR_CHANNEL_NUMBER);
+    config_parse_array(chp, argc, argv, entry, CONFIG_INT16, RC_INPUT_MAX);
   else if(strcmp(entry->name, "kr-tx-input-min") == 0)
-    config_parse_array(chp, argc, argv, entry, CONFIG_UINT16, KR_CHANNEL_NUMBER);
+    config_parse_array(chp, argc, argv, entry, CONFIG_UINT16, RC_INPUT_MAX);
   else if(strcmp(entry->name, "kr-tx-input-max") == 0)
+    config_parse_array(chp, argc, argv, entry, CONFIG_UINT16, RC_INPUT_MAX);
+  else if(strcmp(entry->name, "kr-tx-map-ch") == 0)
+    config_parse_array(chp, argc, argv, entry, CONFIG_UINT8, KR_CHANNEL_NUMBER);
+  else if(strcmp(entry->name, "kr-tx-map-omin") == 0)
+    config_parse_array(chp, argc, argv, entry, CONFIG_UINT16, KR_CHANNEL_NUMBER);
+  else if(strcmp(entry->name, "kr-tx-map-omax") == 0)
+    config_parse_array(chp, argc, argv, entry, CONFIG_UINT16, KR_CHANNEL_NUMBER);
+  else if(strcmp(entry->name, "kr-tx-map-thresh") == 0)
     config_parse_array(chp, argc, argv, entry, CONFIG_UINT16, KR_CHANNEL_NUMBER);
 }
 
-void kr_tx_print_array(BaseSequentialStream * chp, config_entry_mapping_t * entry, uint8_t print_help)
+void kr_tx_print_config(BaseSequentialStream * chp, config_entry_mapping_t * entry, uint8_t print_help)
 {
   if(strcmp(entry->name, "kr-tx-trim") == 0)
-    config_print_array(chp, entry, CONFIG_INT16, KR_CHANNEL_NUMBER, CONFIG_DEC, print_help);
+    config_print_array(chp, entry, CONFIG_INT16, RC_INPUT_MAX, CONFIG_DEC, print_help);
   else if(strcmp(entry->name, "kr-tx-input-min") == 0)
-    config_print_array(chp, entry, CONFIG_UINT16, KR_CHANNEL_NUMBER, CONFIG_DEC, print_help);
+    config_print_array(chp, entry, CONFIG_UINT16, RC_INPUT_MAX, CONFIG_DEC, print_help);
   else if(strcmp(entry->name, "kr-tx-input-max") == 0)
+    config_print_array(chp, entry, CONFIG_UINT16, RC_INPUT_MAX, CONFIG_DEC, print_help);
+  else if(strcmp(entry->name, "kr-tx-map-ch") == 0)
+    config_print_array(chp, entry, CONFIG_UINT8, KR_CHANNEL_NUMBER, CONFIG_DEC, print_help);
+  else if(strcmp(entry->name, "kr-tx-map-omin") == 0)
     config_print_array(chp, entry, CONFIG_UINT16, KR_CHANNEL_NUMBER, CONFIG_DEC, print_help);
+  else if(strcmp(entry->name, "kr-tx-map-omax") == 0)
+    config_print_array(chp, entry, CONFIG_UINT16, KR_CHANNEL_NUMBER, CONFIG_DEC, print_help);
+  else if(strcmp(entry->name, "kr-tx-map-thresh") == 0)
+    config_print_array(chp, entry, CONFIG_UINT16, KR_CHANNEL_NUMBER, CONFIG_DEC, print_help);
+}
+
+void kr_tx_parse_config_map(BaseSequentialStream * chp, int argc, char ** argv, config_entry_mapping_t * entry)
+{
+  config_mode_map_t * map = NULL;
+  uint8_t map_len = _kr_tx_config_get_mapping_table((char *)entry->name, &map);
+
+  config_parse_array_map(chp, argc, argv, entry, KR_CHANNEL_NUMBER, _kr_tx_set_config_cb,map,map_len);
+}
+
+void kr_tx_print_config_map(BaseSequentialStream * chp, config_entry_mapping_t * entry, uint8_t print_help)
+{
+  config_print_array_map(chp, entry, KR_CHANNEL_NUMBER, _kr_tx_get_config_cb, print_help);
+
 }

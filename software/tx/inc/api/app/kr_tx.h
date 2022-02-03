@@ -28,7 +28,9 @@
 #include "types/app/kr_tx_types.h"
 
 extern void kr_tx_init(void);
-extern void kr_tx_parse_array(BaseSequentialStream * chp, int argc, char ** argv, config_entry_mapping_t * entry);
-extern void kr_tx_print_array(BaseSequentialStream * chp, config_entry_mapping_t * entry, uint8_t print_help);
+extern void kr_tx_parse_config(BaseSequentialStream * chp, int argc, char ** argv, config_entry_mapping_t * entry);
+extern void kr_tx_print_config(BaseSequentialStream * chp, config_entry_mapping_t * entry, uint8_t print_help);
+extern void kr_tx_parse_config_map(BaseSequentialStream * chp, int argc, char ** argv, config_entry_mapping_t * entry);
+extern void kr_tx_print_config_map(BaseSequentialStream * chp, config_entry_mapping_t * entry, uint8_t print_help);
 
 #endif /* INC_API_APP_KR_TX_H_ */
