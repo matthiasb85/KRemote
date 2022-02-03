@@ -393,7 +393,7 @@ void rc_input_parse_dig_sm(BaseSequentialStream * chp, int argc, char ** argv, c
                          sizeof(_rc_input_config_switch_mode_map)/sizeof(config_mode_map_t));
 }
 
-void rc_input_print_dig_sm(BaseSequentialStream * chp, config_entry_mapping_t * entry)
+void rc_input_print_dig_sm(BaseSequentialStream * chp, config_entry_mapping_t * entry, uint8_t print_help)
 {
-  config_print_array_map(chp, entry, RC_INPUT_DIG_MAX, _rc_input_get_dig_sm_cb);
+  config_print_array_map(chp, entry, RC_INPUT_DIG_MAX, _rc_input_get_dig_sm_cb, print_help);
 }

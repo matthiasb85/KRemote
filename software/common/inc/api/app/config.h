@@ -34,11 +34,11 @@ extern uint8_t config_map_value_to_str(uint32_t value, char ** dest, const confi
 extern uint8_t config_parse_array(BaseSequentialStream * chp, int argc, char ** argv, config_entry_mapping_t * entry,
                                   config_value_type_t type, uint8_t length);
 extern void config_print_array(BaseSequentialStream * chp, config_entry_mapping_t * entry, config_value_type_t type,
-                               uint8_t length, config_print_type_t fmt);
+                               uint8_t length, config_print_type_t fmt, uint8_t print_help);
 extern uint8_t config_parse_array_map(BaseSequentialStream * chp, int argc, char ** argv, config_entry_mapping_t * entry,
                                uint8_t length, config_set_cb_t set_value_cb, config_mode_map_t * map, uint8_t map_len);
 extern void config_print_array_map(BaseSequentialStream * chp, config_entry_mapping_t * entry,
-                               uint8_t length, config_get_cb_t get_value_cb);
+                               uint8_t length, config_get_cb_t get_value_cb, uint8_t print_help);
 
 extern CONFIG_PARSE_IF(int8_t);
 extern CONFIG_PARSE_IF(int16_t);

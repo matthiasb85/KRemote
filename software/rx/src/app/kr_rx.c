@@ -255,10 +255,10 @@ void kr_rx_parse_array(BaseSequentialStream * chp, int argc, char ** argv, confi
     config_parse_array(chp, argc, argv, entry, CONFIG_UINT16, KR_CHANNEL_NUMBER);
 }
 
-void kr_rx_print_array(BaseSequentialStream * chp, config_entry_mapping_t * entry)
+void kr_rx_print_array(BaseSequentialStream * chp, config_entry_mapping_t * entry, uint8_t print_help)
 {
   if(strcmp(entry->name, "kr-rx-ch-map") == 0)
-    config_print_array(chp, entry, CONFIG_UINT8, KR_CHANNEL_NUMBER, CONFIG_DEC);
+    config_print_array(chp, entry, CONFIG_UINT8, KR_CHANNEL_NUMBER, CONFIG_DEC, print_help);
   else if(strcmp(entry->name, "kr-rx-failsafe") == 0)
-    config_print_array(chp, entry, CONFIG_UINT16, KR_CHANNEL_NUMBER, CONFIG_DEC);
+    config_print_array(chp, entry, CONFIG_UINT16, KR_CHANNEL_NUMBER, CONFIG_DEC, print_help);
 }

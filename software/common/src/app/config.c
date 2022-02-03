@@ -60,7 +60,7 @@ static uint8_t _config_parse_array_entries(char *arg, uint8_t idx, uint8_t lengt
 static uint8_t _config_parse_array_generic(BaseSequentialStream * chp, int argc, char ** argv, config_entry_mapping_t * entry,
                                            config_value_type_t type, uint8_t length, config_set_cb_t set_value_cb, config_mode_map_t * map, uint8_t map_len);
 static void _config_print_array_generic(BaseSequentialStream * chp, config_entry_mapping_t * entry, config_value_type_t type, uint8_t length,
-                                        config_print_type_t fmt, config_get_cb_t get_value_cb);
+                                        config_print_type_t fmt, config_get_cb_t get_value_cb, uint8_t print_help);
 
 /*
  * Static variables
@@ -237,7 +237,7 @@ static uint8_t _config_parse_array_generic(BaseSequentialStream * chp, int argc,
 }
 
 static void _config_print_array_generic(BaseSequentialStream * chp, config_entry_mapping_t * entry, config_value_type_t type, uint8_t length,
-                                        config_print_type_t fmt, config_get_cb_t get_value_cb)
+                                        config_print_type_t fmt, config_get_cb_t get_value_cb, uint8_t print_help)
 {
   const char *const fmt_str_dec = " %d";
   const char *const fmt_str_hex2 = " 0x%02x";
@@ -248,9 +248,11 @@ static void _config_print_array_generic(BaseSequentialStream * chp, config_entry
 
   char * fmt_str = NULL;
 
+  char buffer[CONFIG_PRINT_BUFFER_SIZE];
+  memset(buffer, 0, CONFIG_PRINT_BUFFER_SIZE);
+
   uint8_t i = 0;
 
-  chprintf(chp, "  %-20s ", entry->name);
   switch(fmt)
   {
     case CONFIG_DEC:    fmt_str = (char *)fmt_str_dec; break;
@@ -277,20 +279,24 @@ static void _config_print_array_generic(BaseSequentialStream * chp, config_entry
   }
   for(i=0; i<length; i++)
   {
+    uint8_t p_idx = strlen(buffer);
+    uint8_t max_len = CONFIG_PRINT_BUFFER_SIZE - p_idx;
     switch(type)
     {
-      case CONFIG_UINT8:  chprintf(chp, (const char*)fmt_str, ((uint8_t *) entry->payload)[i]); break;
-      case CONFIG_UINT16: chprintf(chp, (const char*)fmt_str, ((uint16_t *) entry->payload)[i]); break;
-      case CONFIG_UINT32: chprintf(chp, (const char*)fmt_str, ((uint32_t *) entry->payload)[i]); break;
-      case CONFIG_UINT64: chprintf(chp, (const char*)fmt_str, ((uint64_t *) entry->payload)[i]); break;
-      case CONFIG_INT8:   chprintf(chp, (const char*)fmt_str, ((int8_t *) entry->payload)[i]); break;
-      case CONFIG_INT16:  chprintf(chp, (const char*)fmt_str, ((int16_t *) entry->payload)[i]); break;
-      case CONFIG_INT32:  chprintf(chp, (const char*)fmt_str, ((int32_t *) entry->payload)[i]); break;
-      case CONFIG_INT64:  chprintf(chp, (const char*)fmt_str, ((int64_t *) entry->payload)[i]); break;
-      case CONFIG_MAP:    chprintf(chp, (const char*)fmt_str, get_value_cb(entry, i)); break;
+      case CONFIG_UINT8:  chsnprintf(&buffer[p_idx], max_len, (const char*)fmt_str, ((uint8_t *) entry->payload)[i]); break;
+      case CONFIG_UINT16: chsnprintf(&buffer[p_idx], max_len, (const char*)fmt_str, ((uint16_t *) entry->payload)[i]); break;
+      case CONFIG_UINT32: chsnprintf(&buffer[p_idx], max_len, (const char*)fmt_str, ((uint32_t *) entry->payload)[i]); break;
+      case CONFIG_UINT64: chsnprintf(&buffer[p_idx], max_len, (const char*)fmt_str, ((uint64_t *) entry->payload)[i]); break;
+      case CONFIG_INT8:   chsnprintf(&buffer[p_idx], max_len, (const char*)fmt_str, ((int8_t *) entry->payload)[i]); break;
+      case CONFIG_INT16:  chsnprintf(&buffer[p_idx], max_len, (const char*)fmt_str, ((int16_t *) entry->payload)[i]); break;
+      case CONFIG_INT32:  chsnprintf(&buffer[p_idx], max_len, (const char*)fmt_str, ((int32_t *) entry->payload)[i]); break;
+      case CONFIG_INT64:  chsnprintf(&buffer[p_idx], max_len, (const char*)fmt_str, ((int64_t *) entry->payload)[i]); break;
+      case CONFIG_MAP:    chsnprintf(&buffer[p_idx], max_len, (const char*)fmt_str, get_value_cb(entry, i)); break;
     }
   }
+  chprintf(chp, "%-96s %s\r\n", buffer, (print_help) ? entry->help : "\0");
 }
+
 /*
  * Callback functions
  */
@@ -336,7 +342,11 @@ void config_get_entry_sh(BaseSequentialStream *chp, int argc, char *argv[])
     chprintf(chp, "Cannot find entry for %s\r\n", argv[0]);
     return;
   }
-  if(entry->print) entry->print(chp, entry);
+  if(entry->print)
+  {
+    chprintf(chp, " %s ",entry->name);
+    entry->print(chp, entry, 0);
+  }
 }
 
 void config_set_entry_sh(BaseSequentialStream *chp, int argc, char *argv[])
@@ -370,8 +380,8 @@ void config_show_sh(BaseSequentialStream *chp, int argc, char *argv[])
   {
     if(entry->print)
     {
-      entry->print(chp, entry);
-      chprintf(chp, " %s\r\n",entry->help);
+      chprintf(chp, "  %-20s ",entry->name);
+      entry->print(chp, entry, 1);
     }
     else
     {
@@ -395,8 +405,8 @@ void config_export_sh(BaseSequentialStream *chp, int argc, char *argv[])
     if(entry->print)
     {
       chprintf(chp, "config-set");
-      entry->print(chp, entry);
-      chprintf(chp, "\r\n");
+      chprintf(chp, " %s ",entry->name);
+      entry->print(chp, entry, 0);
     }
     entry++;
   }
@@ -467,9 +477,9 @@ uint8_t config_parse_array(BaseSequentialStream * chp, int argc, char ** argv, c
   return _config_parse_array_generic(chp, argc, argv, entry, type, length, NULL, NULL, 0);
 }
 
-void config_print_array(BaseSequentialStream * chp, config_entry_mapping_t * entry, config_value_type_t type, uint8_t length, config_print_type_t fmt)
+void config_print_array(BaseSequentialStream * chp, config_entry_mapping_t * entry, config_value_type_t type, uint8_t length, config_print_type_t fmt, uint8_t print_help)
 {
-  _config_print_array_generic(chp, entry, type, length, fmt, NULL);
+  _config_print_array_generic(chp, entry, type, length, fmt, NULL, print_help);
 }
 
 uint8_t config_parse_array_map(BaseSequentialStream * chp, int argc, char ** argv, config_entry_mapping_t * entry,
@@ -478,9 +488,9 @@ uint8_t config_parse_array_map(BaseSequentialStream * chp, int argc, char ** arg
   return _config_parse_array_generic(chp, argc, argv, entry, CONFIG_MAP, length, set_value_cb, map, map_len);
 }
 
-void config_print_array_map(BaseSequentialStream * chp, config_entry_mapping_t * entry, uint8_t length, config_get_cb_t get_value_cb)
+void config_print_array_map(BaseSequentialStream * chp, config_entry_mapping_t * entry, uint8_t length, config_get_cb_t get_value_cb, uint8_t print_help)
 {
-  _config_print_array_generic(chp, entry, CONFIG_MAP, length, CONFIG_STRING, get_value_cb);
+  _config_print_array_generic(chp, entry, CONFIG_MAP, length, CONFIG_STRING, get_value_cb, print_help);
 }
 
 /*
@@ -498,15 +508,15 @@ CONFIG_PARSE_IF(uint64_t) { config_parse_array(chp, argc, argv, entry, CONFIG_UI
 /*
  * Generic print functions
  */
-CONFIG_PRINT_IF(dec, int8_t)   { config_print_array(chp,entry, CONFIG_INT8,   1, CONFIG_DEC); }
-CONFIG_PRINT_IF(dec, int16_t)  { config_print_array(chp,entry, CONFIG_INT16,  1, CONFIG_DEC); }
-CONFIG_PRINT_IF(dec, int32_t)  { config_print_array(chp,entry, CONFIG_INT32,  1, CONFIG_DEC); }
-CONFIG_PRINT_IF(dec, int64_t)  { config_print_array(chp,entry, CONFIG_INT64,  1, CONFIG_DEC); }
-CONFIG_PRINT_IF(dec, uint8_t)  { config_print_array(chp,entry, CONFIG_UINT8,  1, CONFIG_DEC); }
-CONFIG_PRINT_IF(dec, uint16_t) { config_print_array(chp,entry, CONFIG_UINT16, 1, CONFIG_DEC); }
-CONFIG_PRINT_IF(dec, uint32_t) { config_print_array(chp,entry, CONFIG_UINT32, 1, CONFIG_DEC); }
-CONFIG_PRINT_IF(dec, uint64_t) { config_print_array(chp,entry, CONFIG_UINT64, 1, CONFIG_DEC); }
-CONFIG_PRINT_IF(hex, uint8_t)  { config_print_array(chp,entry, CONFIG_UINT8,  1, CONFIG_HEX); }
-CONFIG_PRINT_IF(hex, uint16_t) { config_print_array(chp,entry, CONFIG_UINT16, 1, CONFIG_HEX); }
-CONFIG_PRINT_IF(hex, uint32_t) { config_print_array(chp,entry, CONFIG_UINT32, 1, CONFIG_HEX); }
-CONFIG_PRINT_IF(hex, uint64_t) { config_print_array(chp,entry, CONFIG_UINT64, 1, CONFIG_HEX); }
+CONFIG_PRINT_IF(dec, int8_t)   { config_print_array(chp,entry, CONFIG_INT8,   1, CONFIG_DEC, print_help); }
+CONFIG_PRINT_IF(dec, int16_t)  { config_print_array(chp,entry, CONFIG_INT16,  1, CONFIG_DEC, print_help); }
+CONFIG_PRINT_IF(dec, int32_t)  { config_print_array(chp,entry, CONFIG_INT32,  1, CONFIG_DEC, print_help); }
+CONFIG_PRINT_IF(dec, int64_t)  { config_print_array(chp,entry, CONFIG_INT64,  1, CONFIG_DEC, print_help); }
+CONFIG_PRINT_IF(dec, uint8_t)  { config_print_array(chp,entry, CONFIG_UINT8,  1, CONFIG_DEC, print_help); }
+CONFIG_PRINT_IF(dec, uint16_t) { config_print_array(chp,entry, CONFIG_UINT16, 1, CONFIG_DEC, print_help); }
+CONFIG_PRINT_IF(dec, uint32_t) { config_print_array(chp,entry, CONFIG_UINT32, 1, CONFIG_DEC, print_help); }
+CONFIG_PRINT_IF(dec, uint64_t) { config_print_array(chp,entry, CONFIG_UINT64, 1, CONFIG_DEC, print_help); }
+CONFIG_PRINT_IF(hex, uint8_t)  { config_print_array(chp,entry, CONFIG_UINT8,  1, CONFIG_HEX, print_help); }
+CONFIG_PRINT_IF(hex, uint16_t) { config_print_array(chp,entry, CONFIG_UINT16, 1, CONFIG_HEX, print_help); }
+CONFIG_PRINT_IF(hex, uint32_t) { config_print_array(chp,entry, CONFIG_UINT32, 1, CONFIG_HEX, print_help); }
+CONFIG_PRINT_IF(hex, uint64_t) { config_print_array(chp,entry, CONFIG_UINT64, 1, CONFIG_HEX, print_help); }

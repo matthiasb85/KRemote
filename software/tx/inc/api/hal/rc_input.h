@@ -31,6 +31,6 @@
 extern void rc_input_init(void);
 extern void rc_input_get_channel_states(rc_input_ch_states_t *dest);
 extern void rc_input_parse_dig_sm(BaseSequentialStream * chp, int argc, char ** argv, config_entry_mapping_t * entry);
-extern void rc_input_print_dig_sm(BaseSequentialStream * chp, config_entry_mapping_t * entry);
+extern void rc_input_print_dig_sm(BaseSequentialStream * chp, config_entry_mapping_t * entry, uint8_t print_help);
 
 #endif /* INC_API_HAL_RC_INPUT_H_ */

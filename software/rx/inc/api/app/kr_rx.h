@@ -30,6 +30,6 @@
 
 extern void kr_rx_init(void);
 extern void kr_rx_parse_array(BaseSequentialStream * chp, int argc, char ** argv, config_entry_mapping_t * entry);
-extern void kr_rx_print_array(BaseSequentialStream * chp, config_entry_mapping_t * entry);
+extern void kr_rx_print_array(BaseSequentialStream * chp, config_entry_mapping_t * entry, uint8_t print_help);
 
 #endif /* INC_API_APP_KR_RX_H_ */

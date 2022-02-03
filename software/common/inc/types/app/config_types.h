@@ -57,7 +57,7 @@ typedef struct _config_entry_mapping_t
 {
   const char *const name;
   void (*parse)(BaseSequentialStream *, int, char **,struct _config_entry_mapping_t *);
-  void (*print)(BaseSequentialStream *, struct _config_entry_mapping_t *);
+  void (*print)(BaseSequentialStream *, struct _config_entry_mapping_t *, uint8_t);
   void * payload;
   const char *const help;
 }config_entry_mapping_t;
@@ -79,6 +79,6 @@ typedef char * (*config_get_cb_t)(config_entry_mapping_t * entry, uint8_t idx);
 
 #define _CONFIG_PRINT_FUNC(A,B)   A##B
 #define CONFIG_PRINT_FUNC(X,Y)    _CONFIG_PRINT_FUNC(config_print_##X, Y)
-#define CONFIG_PRINT_IF(X,Y)      void CONFIG_PRINT_FUNC(X,Y) (BaseSequentialStream * chp, config_entry_mapping_t * entry)
+#define CONFIG_PRINT_IF(X,Y)      void CONFIG_PRINT_FUNC(X,Y) (BaseSequentialStream * chp, config_entry_mapping_t * entry, uint8_t print_help)
 
 #endif /* INC_TYPES_APP_CONFIG_TYPES_H_ */

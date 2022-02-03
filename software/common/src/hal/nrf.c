@@ -60,6 +60,8 @@ static void _nrf_set_connection_state(nrf_connection_state_t state);
 static uint8_t _nrf_config_get_mapping_table(config_entry_mapping_t * entry, config_mode_map_t ** map);
 static void _nrf_irq_line_cb(void *arg);
 static void _nrf_rx_timeout_cb(void *arg);
+static uint8_t _nrf_set_config_cb(config_entry_mapping_t * entry, uint8_t idx, char * arg);
+static char * _nrf_get_config_cb(config_entry_mapping_t * entry, uint8_t idx);
 
 /*
  * Static variables
@@ -389,6 +391,24 @@ static void _nrf_rx_timeout_cb(void *arg)
   }
 }
 
+static uint8_t _nrf_set_config_cb(config_entry_mapping_t * entry, uint8_t idx, char * arg)
+{
+  config_mode_map_t * map = NULL;
+  uint8_t map_len = _nrf_config_get_mapping_table(entry, &map);
+  uint32_t * digital_switch_mode = entry->payload;
+  return config_map_str_to_value(arg, &digital_switch_mode[idx], map, map_len);
+}
+
+static char * _nrf_get_config_cb(config_entry_mapping_t * entry, uint8_t idx)
+{
+  config_mode_map_t * map = NULL;
+  uint8_t map_len = _nrf_config_get_mapping_table(entry, &map);
+  uint8_t * value = entry->payload;
+  char *str = NULL;
+  config_map_value_to_str(value[idx], &str, map, map_len);
+
+  return str;
+}
 
 #if defined(USE_CMD_SHELL)
 /*
@@ -467,77 +487,23 @@ void nrf_register_connection_state_change_callback(void(*cb)(nrf_connection_stat
 
 void nrf_parse_config(BaseSequentialStream * chp, int argc, char ** argv, config_entry_mapping_t * entry)
 {
-  uint32_t * value = entry->payload;
-  uint8_t map_len = 0;
-  uint8_t error = 0;
-  config_mode_map_t * map = NULL;
-  if(argc < 2)
-  {
-    error = 1;
-  }
-  if(!error)
-  {
-    map_len = _nrf_config_get_mapping_table(entry, &map);
-    if(map_len)
-    {
-      if(!config_map_str_to_value(argv[1], value, map, map_len))
-      {
-        error =  3;
-      }
-    }
-    else
-    {
-      error = 2;
-    }
-  }
-  if(error)
-  {
-    chprintf(chp, "Usage:  config-set variable value\r\n");
-    if(error == 1) chprintf(chp, "        Invalid number of arguments\r\n");
-    if(error == 2) chprintf(chp, "        Unknown variable %s\r\n", entry->name);
-    if(error == 3) chprintf(chp, "        Unknown value %s\r\n", argv[1]);
-  }
-}
-
-void nrf_print_config(BaseSequentialStream * chp, config_entry_mapping_t * entry)
-{
   config_mode_map_t * map = NULL;
   uint8_t map_len = _nrf_config_get_mapping_table(entry, &map);
-  uint8_t * value = entry->payload;
-  char *str = NULL;
-  config_map_value_to_str(*value, &str, map, map_len);
-  chprintf(chp, "  %-20s",entry->name);
-  chprintf(chp, " %16s", str);
 
+  config_parse_array_map(chp, argc, argv, entry, 1, _nrf_set_config_cb,map,map_len);
+}
+
+void nrf_print_config(BaseSequentialStream * chp, config_entry_mapping_t * entry, uint8_t print_help)
+{
+  config_print_array_map(chp, entry, 1, _nrf_get_config_cb, print_help);
 }
 
 void nrf_parse_config_ad(BaseSequentialStream * chp, int argc, char ** argv, config_entry_mapping_t * entry)
 {
-  uint8_t i = 0;
-  uint8_t current_aw = _nrf_config->address_width + 2;
-  if(argc != current_aw + 1)
-  {
-      chprintf(chp, "Usage:  config-set %s ", entry->name);
-      for(i=0; i < current_aw; i++)
-      {
-        chprintf(chp, "0xad ");
-      }
-      chprintf(chp, "\r\n");
-      return;
-  }
-  for(i=0; i < current_aw; i++)
-  {
-    _nrf_config->address[i] = strtol(argv[i + 2], NULL, 0);
-  }
+  config_parse_array(chp, argc, argv, entry, CONFIG_UINT8,  _nrf_config->address_width + 2);
 }
 
-void nrf_print_config_ad(BaseSequentialStream * chp, config_entry_mapping_t * entry)
+void nrf_print_config_ad(BaseSequentialStream * chp, config_entry_mapping_t * entry, uint8_t print_help)
 {
-  uint8_t i = 0;
-  uint8_t current_aw = _nrf_config->address_width + 2;
-  chprintf(chp, "  %-20s ", entry->name);
-  for(i=0; i < current_aw; i++)
-  {
-    chprintf(chp, "0x%02x ",_nrf_config->address[i]);
-  }
+  config_print_array(chp,entry, CONFIG_UINT8,  _nrf_config->address_width + 2, CONFIG_HEX, print_help);
 }

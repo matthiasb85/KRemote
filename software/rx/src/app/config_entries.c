@@ -81,8 +81,8 @@ static config_entries_t _config_entries_config = {
 
 static const config_entry_mapping_t _config_entries_mapping[] = {
     { CONFIG_SECTION_DIVIDER("kr-tx config entries") },
-    { .name = "kr-rx-ch-map",   .parse = kr_rx_parse_array,           .print = kr_rx_print_array, .payload = &_config_entries_config.kr_rx.channel_mapping, .help ="kr-rx channel mapping"},
-    { .name = "kr-rx-failsafe", .parse = kr_rx_parse_array,           .print = kr_rx_print_array, .payload = &_config_entries_config.kr_rx.channel_failsafe, .help ="kr-rx failsafe values"},
+    { .name = "kr-rx-ch-map",   .parse = kr_rx_parse_array,           .print = kr_rx_print_array,               .payload = &_config_entries_config.kr_rx.channel_mapping, .help ="kr-rx channel mapping"},
+    { .name = "kr-rx-failsafe", .parse = kr_rx_parse_array,           .print = kr_rx_print_array,               .payload = &_config_entries_config.kr_rx.channel_failsafe, .help ="kr-rx failsafe values"},
     { .name = "kr-rx-loop-ms",  .parse = CONFIG_PARSE_FUNC(uint32_t), .print = CONFIG_PRINT_FUNC(dec,uint32_t), .payload = &_config_entries_config.kr_rx.loop_cmd_period_ms, .help ="Period in ms for loop cmd"},
     { CONFIG_SECTION_DIVIDER("rc-output config entries") },
     { .name = "ro-dig-om",      .parse = rc_output_parse_dig_sm,      .print = rc_output_print_dig_sm,          .payload = &_config_entries_config.rc_output.digital_output_mode,   .help = "Digital output mode"},
