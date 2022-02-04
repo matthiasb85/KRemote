@@ -128,7 +128,7 @@ static const config_entry_mapping_t _config_entries_mapping[] = {
     { .name = "kr-tx-main-ms",   .parse = CONFIG_PARSE_FUNC(uint32_t), .print = CONFIG_PRINT_FUNC(dec,uint32_t), .payload = &_config_entries_config.kr_tx.main_thread_period_ms,       .help = "Period in ms for main thread"},
     { .name = "kr-tx-trim",      .parse = kr_tx_parse_config,     .print = kr_tx_print_config,     .payload = &_config_entries_config.kr_tx.trim,           .help ="kr-tx trim values"},
     { .name = "kr-tx-input-min", .parse = kr_tx_parse_config,     .print = kr_tx_print_config,     .payload = &_config_entries_config.kr_tx.input_min,      .help ="kr-tx input min values"},
-    { .name = "kr-tx-input-min", .parse = kr_tx_parse_config,     .print = kr_tx_print_config,     .payload = &_config_entries_config.kr_tx.input_max,      .help ="kr-tx input max values"},
+    { .name = "kr-tx-input-max", .parse = kr_tx_parse_config,     .print = kr_tx_print_config,     .payload = &_config_entries_config.kr_tx.input_max,      .help ="kr-tx input max values"},
     { .name = "kr-tx-map-type",  .parse = kr_tx_parse_config_map, .print = kr_tx_print_config_map, .payload = &_config_entries_config.kr_tx.map_type,       .help ="kr-tx channel map type"},
     { .name = "kr-tx-map-ch",    .parse = kr_tx_parse_config,     .print = kr_tx_print_config,     .payload = &_config_entries_config.kr_tx.map_channel,    .help ="kr-tx channel map"},
     { .name = "kr-tx-map-inv",   .parse = kr_tx_parse_config_map, .print = kr_tx_print_config_map, .payload = &_config_entries_config.kr_tx.map_inverted,   .help ="kr-tx channel invert"},
