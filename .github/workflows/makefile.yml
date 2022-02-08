@@ -16,8 +16,7 @@ jobs:
     - name: arm-none-eabi-gcc
       uses: fiam/arm-none-eabi-gcc@v1.0.2
       with:
-        release: # optional
-        directory: # optional      
+        release: 9-2019-q4     
     - name: dependencies
       run:  cd ./software && ./download_dependencies.sh && cd -
       
