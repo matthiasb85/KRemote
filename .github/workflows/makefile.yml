@@ -1,0 +1,26 @@
+name: Makefile CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: arm-none-eabi-gcc
+      uses: fiam/arm-none-eabi-gcc@v1.0.2
+        
+    - name: dependencies
+      run:  cd ./software && ./download_dependencies.sh && cd -
+      
+    - name: Build TX
+      run: cd ./spftware/tx && make -j 8 && cd -
+    
+    - name: Build RX
+      run: cd ./spftware/rx && make -j 8 && cd -
