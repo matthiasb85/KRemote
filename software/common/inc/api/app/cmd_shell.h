@@ -1,7 +1,7 @@
 /*
- * This file is part of The AnyKey Project  https://github.com/The-AnyKey-Project
+ * This file is part of The KRemote Project
  *
- * Copyright (c) 2022 Matthias Beckert
+ * Copyright (c) 2021 Matthias Beckert
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

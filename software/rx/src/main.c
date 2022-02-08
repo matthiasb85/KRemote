@@ -1,5 +1,5 @@
 /*
- * This file is part of The AnyKey Project  https://github.com/The-AnyKey-Project
+ * This file is part of The KRemote Project
  *
  * Copyright (c) 2021 Matthias Beckert
  *

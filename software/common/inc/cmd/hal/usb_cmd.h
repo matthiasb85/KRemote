@@ -1,4 +1,4 @@
-/*
+h/*
  * This file is part of The KRemote Project
  *
  * Copyright (c) 2022 Matthias Beckert
@@ -27,7 +27,7 @@
 #if defined(USE_CMD_SHELL)
 /*
  * Global definition of shell commands
- * for module keypad
+ * for module usb
  */
 
 /*

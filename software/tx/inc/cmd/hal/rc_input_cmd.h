@@ -27,7 +27,7 @@
 #if defined(USE_CMD_SHELL)
 /*
  * Global definition of shell commands
- * for module anykey
+ * for module rc_input
  */
 extern void rc_input_loop_channels_sh(BaseSequentialStream *chp, int argc, char *argv[]);
 
