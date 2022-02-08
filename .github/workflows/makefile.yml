@@ -15,7 +15,9 @@ jobs:
     - uses: actions/checkout@v2
     - name: arm-none-eabi-gcc
       uses: fiam/arm-none-eabi-gcc@v1.0.2
-        
+      with:
+        release: # optional
+        directory: # optional      
     - name: dependencies
       run:  cd ./software && ./download_dependencies.sh && cd -
       
