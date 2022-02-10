@@ -1,0 +1,27 @@
+name: Makefile CI
+
+on:
+  push:
+    branches: [ action-test ]
+  pull_request:
+    branches: [ action-test ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: arm-none-eabi-gcc
+      uses: ryanwinter/arm-none-eabi-gcc@v2.0.2
+      with:
+        release: 9-2019-q4     
+    - name: dependencies
+      run:  cd ./software && ./download_dependencies.sh && cd -
+      
+    - name: Build TX
+      run: cd ./software/tx && make -j 8 && cd -
+    
+    - name: Build RX
+      run: cd ./software/rx && make -j 8 && cd -
