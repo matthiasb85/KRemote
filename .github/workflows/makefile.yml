@@ -21,7 +21,7 @@ jobs:
       run:  cd ./software && ./download_dependencies.sh && cd -
       
     - name: Build TX
-      run: cd ./spftware/tx && make -j 8 && cd -
+      run: cd ./software/tx && make -j 8 && cd -
     
     - name: Build RX
-      run: cd ./spftware/rx && make -j 8 && cd -
+      run: cd ./software/rx && make -j 8 && cd -
