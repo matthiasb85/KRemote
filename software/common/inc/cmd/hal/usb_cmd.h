@@ -1,4 +1,4 @@
-h/*
+/*
  * This file is part of The KRemote Project
  *
  * Copyright (c) 2022 Matthias Beckert
@@ -35,7 +35,7 @@ h/*
  * for module usb
  */
 // clang-format off
-#define USB_CMD_LIST \
+#define USB_CMD_LIST 
 
 // clang-format on
 #endif
