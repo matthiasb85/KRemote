@@ -122,6 +122,13 @@ static const config_mode_map_t _rc_output_config_output_mode_map[] = {
 static void _rc_output_init_hal(void)
 {
   uint8_t i = 0;
+
+  /*
+   * Disable JTAG pins
+   * use only SWD
+   */
+  AFIO->MAPR |= AFIO_MAPR_SWJ_CFG_1;
+
   for(i=0; i < RC_OUTPUT_MAX; i++)
   {
     uint32_t line_mode;

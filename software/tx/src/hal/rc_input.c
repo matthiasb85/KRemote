@@ -229,6 +229,12 @@ static void _rc_input_init_hal(void)
   uint8_t sw_id = 0;
 
   /*
+   * Disable JTAG pins
+   * use only SWD
+   */
+  AFIO->MAPR |= AFIO_MAPR_SWJ_CFG_1;
+
+  /*
    * Setup analog lines
    */
   for (sw_id = 0; sw_id < RC_INPUT_AN_MAX; sw_id++)
