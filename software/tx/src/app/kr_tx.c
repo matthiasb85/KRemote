@@ -65,13 +65,14 @@ static void _kr_tx_map_channels(kr_transmit_frame_t * frame, rc_input_ch_states_
 static uint8_t _kr_tx_config_get_mapping_table(char * name, config_mode_map_t ** map);
 static uint8_t _kr_tx_set_config_cb(config_entry_mapping_t * entry, uint8_t idx, char * arg);
 static char * _kr_tx_get_config_cb(config_entry_mapping_t * entry, uint8_t idx);
-static rc_input_ch_states_t _kr_tx_old_states[RC_INPUT_MAX];
+
 /*
  * Static variables
  */
 static THD_WORKING_AREA(_kr_tx_main_stack, KR_TX_MAIN_THREAD_STACK);
 static kr_transmit_frame_t _kr_tx_frame;
 static kr_tx_config_t * _kr_tx_config = NULL;
+static rc_input_ch_states_t _kr_tx_old_states[RC_INPUT_MAX];
 static const config_mode_map_t _kr_tx_mapping_type[] = {
   {"DIS", KR_TX_MAP_DISABLED},
   {"ANA", KR_TX_MAP_ANALOG},
@@ -353,8 +354,38 @@ void kr_tx_trim_channel(BaseSequentialStream *chp, int argc, char *argv[])
           break;;
       }
     }
-    chThdSleep(TIME_MS2I(10));
+    chThdSleep(TIME_MS2I(_kr_tx_config->loop_cmd_period_ms));
   }
+}
+
+void kr_tx_loop_frame(BaseSequentialStream *chp, int argc, char *argv[])
+{
+  (void)argv;
+  if (argc != 0)
+  {
+    chprintf(chp, "Usage:  kr-tx-loop-frame\r\n");
+    return;
+  }
+  uint8_t ch = 0;
+  systime_t time = 0;
+
+  for(ch=0; ch < KR_CHANNEL_NUMBER; ch++)
+  {
+    chprintf(chp, "  CH%02d", ch);
+  }
+  chprintf(chp, "\r\n");
+  while (chnGetTimeout((BaseChannel *)chp, TIME_IMMEDIATE) == Q_TIMEOUT)
+  {
+    time = chVTGetSystemTimeX();
+
+    for(ch=0; ch < KR_CHANNEL_NUMBER; ch++)
+    {
+      chprintf(chp, "%6d",_kr_tx_frame.channels[ch]);
+    }
+    chprintf(chp, "\r");
+    chThdSleepUntilWindowed(time, time + TIME_MS2I(_kr_tx_config->loop_cmd_period_ms));
+  }
+  chprintf(chp, "\r\n\nstopped\r\n");
 }
 
 #endif

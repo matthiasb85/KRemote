@@ -63,6 +63,7 @@ typedef struct
   uint16_t map_threshold[KR_CHANNEL_NUMBER];
   uint32_t main_thread_prio;
   uint32_t main_thread_period_ms;
+  uint32_t loop_cmd_period_ms;
 }kr_tx_config_t;
 
 #endif /* INC_TYPES_APP_KR_TX_TYPES_H_ */

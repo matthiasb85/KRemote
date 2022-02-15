@@ -31,6 +31,7 @@
  */
 extern void kr_tx_show_channel(BaseSequentialStream *chp, int argc, char *argv[]);
 extern void kr_tx_trim_channel(BaseSequentialStream *chp, int argc, char *argv[]);
+extern void kr_tx_loop_frame(BaseSequentialStream *chp, int argc, char *argv[]);
 
 /*
  * Shell command list
@@ -39,7 +40,8 @@ extern void kr_tx_trim_channel(BaseSequentialStream *chp, int argc, char *argv[]
 // clang-format off
 #define KR_TX_CMD_LIST \
             {"kr-tx-show-channel", kr_tx_show_channel}, \
-            {"kr-tx-trim-channel", kr_tx_trim_channel},
+            {"kr-tx-trim-channel", kr_tx_trim_channel}, \
+            {"kr-tx-loop-frame",   kr_tx_loop_frame},
 
 // clang-format on
 #endif
