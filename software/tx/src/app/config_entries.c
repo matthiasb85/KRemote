@@ -77,7 +77,7 @@ static config_entries_t _config_entries_config = {
             0, 1, 0, 0, 1, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
         },
         .map_inverted = {
-            KR_TX_INV_FALSE, KR_TX_INV_FALSE, KR_TX_INV_FALSE, KR_TX_INV_FALSE,
+            KR_TX_INV_FALSE, KR_TX_INV_TRUE,  KR_TX_INV_FALSE, KR_TX_INV_FALSE,
             KR_TX_INV_FALSE, KR_TX_INV_FALSE, KR_TX_INV_FALSE, KR_TX_INV_FALSE,
             KR_TX_INV_FALSE, KR_TX_INV_FALSE, KR_TX_INV_FALSE, KR_TX_INV_FALSE,
             KR_TX_INV_FALSE, KR_TX_INV_FALSE, KR_TX_INV_FALSE, KR_TX_INV_FALSE
