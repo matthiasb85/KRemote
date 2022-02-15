@@ -195,13 +195,13 @@ static void _kr_tx_map_channels(kr_transmit_frame_t * frame, rc_input_ch_states_
           case KR_TX_COND_GE: frame->channels[i] = (i_channel >= threshold) ? output_max : output_min; break;
           case KR_TX_COND_LE: frame->channels[i] = (i_channel <= threshold) ? output_max : output_min; break;
           case KR_TX_COND_TGE:
-            if(i_channel != i_channel_old && i_channel >= threshold)
+            if(i_channel != i_channel_old && i_channel_old <= threshold && i_channel >= threshold)
             {
                 frame->channels[i] = (frame->channels[i] == output_max) ? output_min: output_max;
             }
             break;
           case KR_TX_COND_TLE:
-            if(i_channel != i_channel_old && i_channel <= threshold)
+            if(i_channel != i_channel_old && i_channel_old >= threshold && i_channel <= threshold)
             {
                 frame->channels[i] = (frame->channels[i] == output_max) ? output_min: output_max;
             }
