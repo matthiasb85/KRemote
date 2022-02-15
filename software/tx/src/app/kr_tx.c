@@ -65,7 +65,7 @@ static void _kr_tx_map_channels(kr_transmit_frame_t * frame, rc_input_ch_states_
 static uint8_t _kr_tx_config_get_mapping_table(char * name, config_mode_map_t ** map);
 static uint8_t _kr_tx_set_config_cb(config_entry_mapping_t * entry, uint8_t idx, char * arg);
 static char * _kr_tx_get_config_cb(config_entry_mapping_t * entry, uint8_t idx);
-
+static rc_input_ch_states_t _kr_tx_old_states[RC_INPUT_MAX];
 /*
  * Static variables
  */
@@ -79,8 +79,10 @@ static const config_mode_map_t _kr_tx_mapping_type[] = {
 };
 static const config_mode_map_t _kr_tx_condition[] = {
   {"NONE",KR_TX_COND_NONE},
-  {"GE", KR_TX_COND_GE},
-  {"LE", KR_TX_COND_LE}
+  {"GE",  KR_TX_COND_GE},
+  {"LE",  KR_TX_COND_LE},
+  {"TGE", KR_TX_COND_TGE},
+  {"TLE", KR_TX_COND_TLE}
 };
 static const config_mode_map_t _kr_tx_direction[] = {
   {"FALSE",KR_TX_INV_FALSE},
@@ -113,6 +115,7 @@ static __attribute__((noreturn)) THD_FUNCTION(_kr_tx_main_thread, arg)
     _kr_tx_trim_and_limit(states, RC_INPUT_MAX);
     _kr_tx_map_channels(&_kr_tx_frame, states, KR_CHANNEL_NUMBER);
     nrf_send_payload(&_kr_tx_frame, sizeof(_kr_tx_frame));
+    memcpy(_kr_tx_old_states, states, sizeof(_kr_tx_old_states));
 
     chThdSleepUntilWindowed(time, time + TIME_MS2I(_kr_tx_config->main_thread_period_ms));
   }
@@ -134,6 +137,11 @@ static void _kr_tx_init_module(void)
    */
   chThdCreateStatic(_kr_tx_main_stack, sizeof(_kr_tx_main_stack), _kr_tx_config->main_thread_prio,
                     _kr_tx_main_thread, NULL);
+
+  /*
+   * Initialize state channel state buffer
+   */
+  memset(_kr_tx_old_states, 0, sizeof(_kr_tx_old_states));
 }
 
 
@@ -173,6 +181,7 @@ static void _kr_tx_map_channels(kr_transmit_frame_t * frame, rc_input_ch_states_
     kr_tx_condition_t condition = _kr_tx_config->map_condition[i];
     uint16_t threshold = _kr_tx_config->map_threshold[i];
     uint16_t i_channel = states[i_id].state.analog;
+    uint16_t i_channel_old = _kr_tx_old_states[i_id].state.analog;
 
     switch(type)
     {
@@ -185,6 +194,8 @@ static void _kr_tx_map_channels(kr_transmit_frame_t * frame, rc_input_ch_states_
         {
           case KR_TX_COND_GE: frame->channels[i] = (i_channel >= threshold) ? output_max : output_min; break;
           case KR_TX_COND_LE: frame->channels[i] = (i_channel <= threshold) ? output_max : output_min; break;
+          case KR_TX_COND_TGE: if(i_channel != i_channel_old) frame->channels[i] = (i_channel >= threshold) ? output_max : output_max; break;
+          case KR_TX_COND_TLE: if(i_channel != i_channel_old) frame->channels[i] = (i_channel <= threshold) ? output_max : output_max; break;
           default:
             break;
         }

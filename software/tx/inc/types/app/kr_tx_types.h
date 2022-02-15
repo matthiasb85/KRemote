@@ -39,6 +39,8 @@ typedef enum
   KR_TX_COND_NONE = 0,
   KR_TX_COND_GE,
   KR_TX_COND_LE,
+  KR_TX_COND_TGE,
+  KR_TX_COND_TLE,
 }kr_tx_condition_t;
 
 typedef enum
