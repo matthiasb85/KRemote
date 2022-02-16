@@ -183,12 +183,22 @@ static void _kr_tx_map_channels(kr_transmit_frame_t * frame, rc_input_ch_states_
     uint16_t threshold = _kr_tx_config->map_threshold[i];
     uint16_t i_channel = states[i_id].state.analog;
     uint16_t i_channel_old = _kr_tx_old_states[i_id].state.analog;
+    uint16_t i_channel_min = _kr_tx_config->input_min[i_id];
+    uint16_t i_channel_max = _kr_tx_config->input_max[i_id];
 
     switch(type)
     {
       case KR_TX_MAP_ANALOG:
-        frame->channels[i] = output_min + (kr_ch_t)((float)i_channel*
-            ((float)(output_max-output_min) / (float)(_kr_tx_config->input_max[i_id]-_kr_tx_config->input_min[i_id])));
+        {
+          int32_t i_value = (i_channel < i_channel_min) ? 0 : i_channel - i_channel_min;
+          i_value = (i_value > i_channel_max) ? i_channel_max : i_value;
+
+          int32_t o_value = output_min + (kr_ch_t)((float)i_value*
+              ((float)(output_max-output_min) / (float)(i_channel_max - i_channel_min)));
+          o_value = (o_value < output_min) ? output_min : o_value;
+          o_value = (o_value > output_max) ? output_max : o_value;
+          frame->channels[i] = (kr_ch_t)o_value;
+        }
         break;
       case KR_TX_MAP_DIGITAL:
         switch(condition)
@@ -354,6 +364,57 @@ void kr_tx_trim_channel(BaseSequentialStream *chp, int argc, char *argv[])
           break;;
       }
     }
+    chThdSleep(TIME_MS2I(_kr_tx_config->loop_cmd_period_ms));
+  }
+}
+
+void kr_tx_limit_channel(BaseSequentialStream *chp, int argc, char *argv[])
+{
+  if (argc != 1)
+  {
+    chprintf(chp, "Usage:  kr-tx-limit-channel channel\r\n");
+    return;
+  }
+  uint32_t ch = (uint16_t)strtol(argv[0], NULL, 0);
+
+  uint16_t old_min = _kr_tx_config->input_min[ch];
+  uint16_t old_max = _kr_tx_config->input_min[ch];
+
+  uint16_t input_min = 4096;
+  uint16_t input_max = 0;
+
+  chprintf(chp, "Modify limit values via stick movement, press ENTER to save value or a/A to abort!\r\n");
+  while (true)
+  {
+    uint8_t input = 0;
+
+    rc_input_ch_states_t states[RC_INPUT_MAX];
+    rc_input_get_channel_states(states);
+
+    input_min = (states[ch].state.analog < input_min) ? states[ch].state.analog : input_min;
+    input_max = (states[ch].state.analog > input_max) ? states[ch].state.analog : input_max;
+
+    input = chnGetTimeout((BaseChannel *)chp, TIME_IMMEDIATE);
+
+    switch(input)
+    {
+      case 0x0d:
+        _kr_tx_config->input_min[ch] = input_min;
+        _kr_tx_config->input_max[ch] = input_max;
+        chprintf(chp, "\r\nSaved trim value %d for input channel %d. Use config-store to persist data!\r\n", _kr_tx_config->trim[ch], ch);
+        return;
+      case 'a':
+      case 'A':
+        _kr_tx_config->input_min[ch] = old_min;
+        _kr_tx_config->input_max[ch] = old_max;
+        chprintf(chp, "Abort!\r\n");
+        return;
+      default:
+        break;
+    }
+
+    chprintf(chp, "CH%d %5d %5d\r",ch, input_min, input_max);
+
     chThdSleep(TIME_MS2I(_kr_tx_config->loop_cmd_period_ms));
   }
 }

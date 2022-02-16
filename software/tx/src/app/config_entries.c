@@ -74,10 +74,10 @@ static config_entries_t _config_entries_config = {
             KR_TX_MAP_DISABLED, KR_TX_MAP_DISABLED, KR_TX_MAP_DISABLED, KR_TX_MAP_DISABLED
         },
         .map_channel = {
-            0, 1, 0, 0, 1, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+            1, 0, 0, 0, 0, 8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
         },
         .map_inverted = {
-            KR_TX_INV_FALSE, KR_TX_INV_TRUE,  KR_TX_INV_FALSE, KR_TX_INV_FALSE,
+            KR_TX_INV_TRUE,  KR_TX_INV_FALSE, KR_TX_INV_FALSE, KR_TX_INV_FALSE,
             KR_TX_INV_FALSE, KR_TX_INV_FALSE, KR_TX_INV_FALSE, KR_TX_INV_FALSE,
             KR_TX_INV_FALSE, KR_TX_INV_FALSE, KR_TX_INV_FALSE, KR_TX_INV_FALSE,
             KR_TX_INV_FALSE, KR_TX_INV_FALSE, KR_TX_INV_FALSE, KR_TX_INV_FALSE
@@ -93,7 +93,7 @@ static config_entries_t _config_entries_config = {
         },
         .map_condition = {
             KR_TX_COND_NONE, KR_TX_COND_NONE, KR_TX_COND_NONE, KR_TX_COND_NONE,
-            KR_TX_COND_LE, KR_TX_COND_GE, KR_TX_COND_NONE, KR_TX_COND_NONE,
+            KR_TX_COND_LE, KR_TX_COND_TGE, KR_TX_COND_NONE, KR_TX_COND_NONE,
             KR_TX_COND_NONE, KR_TX_COND_NONE, KR_TX_COND_NONE, KR_TX_COND_NONE,
             KR_TX_COND_NONE, KR_TX_COND_NONE, KR_TX_COND_NONE, KR_TX_COND_NONE
         },
