@@ -29,7 +29,7 @@
  * Global definition of shell commands
  * for module nrf
  */
-//extern void nrf_foo_sh(BaseSequentialStream *chp, int argc, char *argv[]);
+extern void nrf_loop_state(BaseSequentialStream *chp, int argc, char *argv[]);
 
 /*
  * Shell command list
@@ -37,7 +37,7 @@
  */
 // clang-format off
 #define NRF_CMD_LIST \
-            /*{"nrf-foo, nrf_foo_sh},*/
+            {"nrf-loop-state", nrf_loop_state},
 
 // clang-format on
 #endif

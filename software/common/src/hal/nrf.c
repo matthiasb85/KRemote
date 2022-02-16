@@ -429,12 +429,12 @@ static char * _nrf_get_config_cb(config_entry_mapping_t * entry, uint8_t idx)
 /*
  * Shell functions
  */
-void nrf_foo_sh(BaseSequentialStream *chp, int argc, char *argv[])
+void nrf_loop_state(BaseSequentialStream *chp, int argc, char *argv[])
 {
   (void)argv;
   if (argc > 0)
   {
-    chprintf(chp, "Usage: nrf-foo\r\n");
+    chprintf(chp, "Usage: nrf-loop-state\r\n");
     return;
   }
 
@@ -445,8 +445,8 @@ void nrf_foo_sh(BaseSequentialStream *chp, int argc, char *argv[])
   {
       time = chVTGetSystemTimeX();
 
-      chprintf(chp, "\r");
-      chThdSleepUntilWindowed(time, time + TIME_MS2I(1000));
+      chprintf(chp, "Connection state: %5s\r", (_nrf_connection_state == NRF_CONNECTION_LOST) ? "LOST" : "ESTAB");
+      chThdSleepUntilWindowed(time, time + TIME_MS2I(10));
   }
   chprintf(chp, "\r\n\nstopped\r\n");
 }
