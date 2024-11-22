@@ -56,6 +56,7 @@ static_assert(RC_OUTPUT_MAX == (RC_OUTPUT_AN_MAX + RC_OUTPUT_DIG_MAX),
  */
 static void _rc_output_init_hal(void);
 static void _rc_output_init_module(void);
+static uint32_t _rc_output_int_to_pwm_ticks(uint32_t pwm_min, uint32_t pwm_max, uint32_t duty_cycle);
 static void _rc_output_set_analog(uint8_t channel, uint16_t value);
 static void _rc_output_set_digital(uint8_t channel, uint16_t value);
 static uint8_t _rc_output_set_dig_om_cb(config_entry_mapping_t * entry, uint8_t idx, char * arg);
@@ -157,11 +158,19 @@ static void _rc_output_init_module(void)
   // nothing to do
 }
 
+static uint32_t _rc_output_int_to_pwm_ticks(uint32_t pwm_min, uint32_t pwm_max, uint32_t duty_cycle)
+{
+  uint32_t ret = RC_OUTPUT_PWM_US_TO_TICKS(pwm_min) + (RC_OUTPUT_PWM_US_TO_TICKS(pwm_max-pwm_min)*duty_cycle)/RC_OUTPUT_PWM_MAX_VALUE;
+  return ret;
+}
+
 static void _rc_output_set_analog(uint8_t channel, uint16_t value)
 {
   rc_output_ch_an_t ch = _rc_output[channel].id.an;
+  uint32_t pwm_min = _rc_output_config->pwm_out_min[ch];
+  uint32_t pwm_max = _rc_output_config->pwm_out_max[ch];
   uint32_t duty_cycle = (value*RC_OUTPUT_PWM_MAX_VALUE)/KR_CHANNEL_MAX_VALUE;
-  pwmEnableChannel(RC_OUTPUT_PWM_TIMER_DRIVER, ch, RC_OUTPUT_PWM_MIN_DUTY_TICKS + RC_OUTPUT_PWM_INT_TO_TICKS(duty_cycle));
+  pwmEnableChannel(RC_OUTPUT_PWM_TIMER_DRIVER, ch, _rc_output_int_to_pwm_ticks(pwm_min, pwm_max, duty_cycle));
   _rc_output_pwm_duty_cycles[ch] = duty_cycle;
 }
 
@@ -301,3 +310,18 @@ void rc_output_print_dig_sm(BaseSequentialStream * chp, config_entry_mapping_t *
   config_print_array_map(chp, entry, RC_OUTPUT_DIG_MAX, _rc_output_get_dig_om_cb, print_help);
 }
 
+void rc_output_parse_config(BaseSequentialStream * chp, int argc, char ** argv, config_entry_mapping_t * entry)
+{
+  if(strcmp(entry->name, "ro-pwm-min") == 0)
+    config_parse_array(chp, argc, argv, entry, CONFIG_INT32, RC_OUTPUT_AN_MAX);
+  else if(strcmp(entry->name, "ro-pwm-max") == 0)
+    config_parse_array(chp, argc, argv, entry, CONFIG_UINT32, RC_OUTPUT_AN_MAX);
+}
+
+void rc_output_print_config(BaseSequentialStream * chp, config_entry_mapping_t * entry, uint8_t print_help)
+{
+  if(strcmp(entry->name, "ro-pwm-min") == 0)
+    config_print_array(chp, entry, CONFIG_INT32, RC_OUTPUT_AN_MAX, CONFIG_DEC, print_help);
+  else if(strcmp(entry->name, "ro-pwm-max") == 0)
+    config_print_array(chp, entry, CONFIG_UINT32, RC_OUTPUT_AN_MAX, CONFIG_DEC, print_help);
+}

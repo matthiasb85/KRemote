@@ -46,8 +46,8 @@
 
 #define RC_OUTPUT_PWM_TIMER_FREQ      200000                  // 20KHz timer speed
 #define RC_OUTPUT_PWM_P_MS            20                      // 20ms period
-#define RC_OUTPUT_PWM_MIN_DUTY_MS     1
-#define RC_OUTPUT_PWM_MAX_DUTY_MS     2
+#define RC_OUTPUT_PWM_MIN_DUTY_US     1000
+#define RC_OUTPUT_PWM_MAX_DUTY_US     2000
 #define RC_OUTPUT_PWM_TIMER_DRIVER    (&PWMD2)
 #define RC_OUTPUT_PWM_MAX_VALUE       10000
 

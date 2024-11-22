@@ -70,6 +70,12 @@ static config_entries_t _config_entries_config = {
             PAL_MODE_OUTPUT_OPENDRAIN, PAL_MODE_OUTPUT_OPENDRAIN, PAL_MODE_OUTPUT_OPENDRAIN, PAL_MODE_OUTPUT_OPENDRAIN,
             PAL_MODE_OUTPUT_OPENDRAIN, PAL_MODE_OUTPUT_OPENDRAIN, PAL_MODE_OUTPUT_OPENDRAIN, PAL_MODE_OUTPUT_OPENDRAIN
         },
+        .pwm_out_min = {
+            RC_OUTPUT_PWM_MIN_DUTY_US, RC_OUTPUT_PWM_MIN_DUTY_US, RC_OUTPUT_PWM_MIN_DUTY_US, RC_OUTPUT_PWM_MIN_DUTY_US
+        },
+        .pwm_out_max = {
+            RC_OUTPUT_PWM_MAX_DUTY_US, RC_OUTPUT_PWM_MAX_DUTY_US, RC_OUTPUT_PWM_MAX_DUTY_US, RC_OUTPUT_PWM_MAX_DUTY_US
+        },
         .loop_cmd_period_ms = RC_OUTPUT_LOOP_CMD_P_MS
     },
     .nrf = {
@@ -87,6 +93,8 @@ static const config_entry_mapping_t _config_entries_mapping[] = {
     { CONFIG_SECTION_DIVIDER("rc-output config entries") },
     { .name = "ro-dig-om",      .parse = rc_output_parse_dig_sm,      .print = rc_output_print_dig_sm,          .payload = &_config_entries_config.rc_output.digital_output_mode,   .help = "Digital output mode"},
     { .name = "ro-loop-ms",     .parse = CONFIG_PARSE_FUNC(uint32_t), .print = CONFIG_PRINT_FUNC(dec,uint32_t), .payload = &_config_entries_config.rc_output.loop_cmd_period_ms,    .help = "Period in ms for loop cmd"},
+    { .name = "ro-pwm-min",     .parse = rc_output_parse_config,      .print = rc_output_print_config,          .payload = &_config_entries_config.rc_output.pwm_out_min,           .help = "Min PWM duty cycle in us"},
+    { .name = "ro-pwm-max",     .parse = rc_output_parse_config,      .print = rc_output_print_config,          .payload = &_config_entries_config.rc_output.pwm_out_max,           .help = "Max PWM duty cycle in us"},
     { CONFIG_SECTION_DIVIDER("nrf config entries") },
     NRF_CONFIG_MAP_ENTRIES,
     { .name = "\0",       .parse = NULL,             .print = NULL,              .payload = NULL}

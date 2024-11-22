@@ -32,5 +32,7 @@ extern void rc_output_init(void);
 extern void rc_output_set(rc_output_ch_t ch, uint16_t value);
 extern void rc_output_parse_dig_sm(BaseSequentialStream * chp, int argc, char ** argv, config_entry_mapping_t * entry);
 extern void rc_output_print_dig_sm(BaseSequentialStream * chp, config_entry_mapping_t * entry, uint8_t print_help);
+extern void rc_output_parse_config(BaseSequentialStream * chp, int argc, char ** argv, config_entry_mapping_t * entry);
+extern void rc_output_print_config(BaseSequentialStream * chp, config_entry_mapping_t * entry, uint8_t print_help);
 
 #endif /* INC_API_HAL_RC_OUTPUT_H_ */
